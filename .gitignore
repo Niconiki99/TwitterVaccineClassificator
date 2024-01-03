@@ -1,0 +1,6 @@
+*.out
+*.sh
+*.log
+
+__pycache__/
+DIRS.py
