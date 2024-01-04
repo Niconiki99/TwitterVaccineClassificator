@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build graphs from retweets.
 
 It will build:
@@ -16,7 +15,6 @@ import numpy as np
 import pandas as pd
 from scipy import sparse
 from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR
-#from locals import RAW_DATAPATH
 
 DATAPATH = pathlib.Path("data")
 DATAPATH.mkdir(parents=True, exist_ok=True)
