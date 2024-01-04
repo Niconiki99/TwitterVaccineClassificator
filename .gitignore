@@ -1,6 +1,6 @@
 *.out
 *.sh
 *.log
-
+*.ipynb
 __pycache__/
 DIRS.py
