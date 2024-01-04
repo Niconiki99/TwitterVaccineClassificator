@@ -42,17 +42,14 @@ df_com = pd.read_csv(
     DATA_DIR+"communities_2021-06-01.csv.gz",
     lineterminator="\n",
     header=0,
-    names=["user.id","leiden","infomap","louvain","leiden_5000","leiden_90","louvain_5000","louvain_90","infomap_5000","infomap_90"],
+    names=["user.id","leiden","louvain","leiden_5000","leiden_90","louvain_5000","louvain_90"],
     dtype={"user.id":str,
            "leiden":int,
-           "infomap":int,
            "louvain":int,
            "leiden_5000":int,
            "leiden_90":int,
            "louvain_5000":int,
-           "louvain_90":int,
-           "infomap_5000":int,
-           "infomap_90":int},
+           "louvain_90":int,}
     )
 df_com=df_com[["user.id","leiden_90","louvain_90"]]
 
