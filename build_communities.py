@@ -1,20 +1,23 @@
-#!/usr/bin/env python3
 """Starting from the graphs, compute the community structures."""
 
 from __future__ import annotations
 
 from time import time
 
+import pathlib
 import igraph
 import networkx as nx
 import numpy as np
 import pandas as pd
-import pygenstability as stability
 import sknetwork
 import tqdm
 from scipy import sparse
 
-from build_graphs import DATAPATH, load_graph
+from build_graphs import NETPATH, load_graph
+from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA
+
+DATAPATH = pathlib.Path(DATA_DIR)
+NETPATH.mkdir(parents=True, exist_ok=True)
 
 
 def partition_core(
@@ -105,30 +108,8 @@ def partition(
         # optimize modularity with leiden in igraph
         graph_ig = sparse2igraph(adj, directed=False)
         p = graph_ig.community_leiden(objective_function="modularity", weights="weight")
-    elif kind == "infomap":
-        graph_ig = sparse2igraph(adj)
-        p = graph_ig.community_infomap(edge_weights="weight")
-    elif kind == "fastgreedy":
-        graph_ig = sparse2igraph(adj)
-        p = graph_ig.community_fastgreedy(weights="weight").as_clustering()
-    elif kind == "stability":
-        transition, steadystate = compute_transition_matrix(
-            adj + 0.1 * adj.T, niter=1000
-        )
-        stab = stability.run(
-            transition @ sparse.diags(steadystate, offsets=0, shape=transition.shape),
-            n_workers=15,
-            tqdm_disable=False,
-        )
-        p = pd.DataFrame(
-            {
-                f"stab_{p_id}": stab["community_id"][p_id]
-                for p_id in stab["selected_partitions"]
-            },
-            index=usermap,
-        )
 
-    if kind in {"infomap", "leiden", "fastgreedy"}:
+    if kind ==  "leiden":
         # convert igraph result to pd.Series
         p = {u: ip for ip, _p in enumerate(p) for u in _p}
         p = pd.Series(p.values(), index=p.keys())
@@ -258,13 +239,6 @@ def main(deadline: str) -> None:
 
     p["louvain"] = partition_core(tail, head, usermap, kind="sk_louvain")
 
-    # Infomap produce very small communities
-    # p["infomap"] = partition_core(tail, head, usermap, kind="infomap")
-
-    pstab = partition_core(tail, head, usermap, kind="stability")
-    for c in pstab.columns:
-        p[c] = pstab[c]
-
     plot_comm_size(p)
 
     for part in p.columns:
@@ -275,5 +249,5 @@ def main(deadline: str) -> None:
 
 
 if __name__ == "__main__":
-    for deadline in ["2021-06-01"]:
-        main(deadline)
+    deadline="2021-06-01"
+    main(deadline)
