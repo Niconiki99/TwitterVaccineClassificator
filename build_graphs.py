@@ -20,10 +20,10 @@ NETPATH = pathlib.Path(NETWORK_DATA)
 NETPATH.mkdir(parents=True, exist_ok=True)
 
 
-def load_data(deadline: str) -> pd.DataFrame:
+def load_data(deadline: str,path: str) -> pd.DataFrame:
     """Load the full dataset."""
     df_full = pd.read_csv(
-        LARGE_DATA_DIR + "df_full.csv.gz",
+        path,
         index_col="id",
         dtype={
             "id": str,
@@ -71,9 +71,11 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     return retweets
 
 
-def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp) -> None:
+def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=False) -> None:
     """Write down the hyprgraph."""
     print("Building hyprgraph for", deadline.date())
+    if(not(savenames)):
+        savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
 
     users = set(retweets["source"]) | set(retweets["target"])
     users = {u: i for i, u in enumerate(users)}
@@ -102,26 +104,39 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp) -> None:
     users = users[comp_indx].reset_index(drop=True)
     print(users.shape, tail.shape, head.shape)
 
-    sparse.save_npz(NETPATH / f"hyprgraph_{deadline.date()}_head.npz", head)
-    sparse.save_npz(NETPATH / f"hyprgraph_{deadline.date()}_tail.npz", tail)
+    sparse.save_npz(NETPATH / savenames[0], head)
+    sparse.save_npz(NETPATH / savenames[1], tail)
 
-    users.to_csv(NETPATH / f"hyprgraph_{deadline.date()}_usermap.csv.gz")
+    users.to_csv(NETPATH / savenames[2])
 
     return tail @ head.T, users
 
 
 def load_graph(
-    deadline: pd.Timestamp
+    deadline: pd.Timestamp,
+    path : pathlib.PosixPath,savenames:list=False
 ) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
     """Load head tail and usermap."""
-    head = sparse.load_npz(NETPATH / f"hyprgraph_{deadline}_head.npz")
-    tail = sparse.load_npz(NETPATH / f"hyprgraph_{deadline}_tail.npz")
-
-    users = pd.read_csv(
-        NETPATH / f"hyprgraph_{deadline}_usermap.csv.gz",
+    if(not(savenames)):
+        savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
+    try:
+        head = sparse.load_npz(path / savenames[0])
+        tail = sparse.load_npz(path / savenames[1])
+        users = pd.read_csv(
+        path / savenames[2],
         index_col=0,
         dtype="int64",
     )["0"]
+    except TypeError:
+        head = sparse.load_npz(path + "/"+savenames[0])
+        tail = sparse.load_npz(path + "/"+savenames[1])
+        users = pd.read_csv(
+        path +"/"+savenames[2],
+        index_col=0,
+        dtype="int64",
+    )["0"]
+
+    
 
     return tail, head, users
 
@@ -185,8 +200,8 @@ def main(deadline: pd.Timestamp) -> None:
     print("============")
     print(parse_date(deadline))
     print("============")
-
-    retweets = compute_graph(load_data(deadline))
+    path=LARGE_DATA_DIR+"df_full.csv.gz"
+    retweets = compute_graph(load_data(deadline,path))
     adj, users = write_hypergraph(retweets, deadline)
 
     # Directed graph
