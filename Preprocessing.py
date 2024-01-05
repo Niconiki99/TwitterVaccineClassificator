@@ -4,6 +4,8 @@ import seaborn as sns
 import json
 from sklearn.model_selection import train_test_split
 from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR
+labels=['ProVax','AntiVax','Neutral']
+random_state=42
 
 def undersampling(df, random_state):
     # undersampling function, since label classes are unbalancd (ProVax is the smallest)
@@ -14,12 +16,83 @@ def undersampling(df, random_state):
         df[df.label == 'Neutral'].sample(l, random_state=random_state)
     ], ignore_index=False)
     return out
-#READING OF THE DATAS
-#DATASET WITH ALL THE TWEETS
-df = pd.read_csv(
-      LARGE_DATA_DIR+"df_full.csv.gz",
+
+def reading_merging(path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,name_pos):
+    df = pd.read_csv(
+        path_df,
         index_col="id",
-        dtype={
+        name=name_df,
+        dtype=dtype_df,
+        na_values=["", "[]"],
+        parse_dates=["created_at"],
+        lineterminator="\n",
+        )
+    df_com = pd.read_csv(
+        path_com,
+        names=names_com,
+        dtype=dtype_df,
+        lineterminator="\n"
+    )
+    df_com=df_com[["user.id","leiden_90","louvain_90"]]
+    df_com["user.id"]
+    with open(path_pos) as f: 
+        positions = json.load(f)     
+    # reconstructing the data as a dictionary 
+    df_pos=pd.DataFrame.from_dict(positions, orient='index',columns=name_pos)
+    df=df.merge(df_com,how="left",left_on="user.id",right_on="user.id")
+    df=df.merge(df_pos,how="left",left_on="user.id",right_index=True)
+    return df
+
+def preproc(df,label,seed):
+    df_anno=df[df['annotation'].notna()]
+    df_anno.loc[:,'text']=df_anno['text'].apply(lambda x: x.replace('\n',' ').replace('\t','').replace("\r\n"," ").replace('\u0085'," ").replace('\u2028'," ").replace('\u2029'," "))
+    df_anno=df_anno[['text','annotation',"leiden_90","louvain_90","x_pos","y_pos"]].rename(columns=
+                                                                                               {'text':'sentence',
+                                                                                                'annotation':'label',
+                                                                                                "leiden_90":"leiden_90",
+                                                                                                "louvain_90":"louvain_90",
+                                                                                                "x_pos":"x_pos",
+                                                                                                "y_pos":"y_pos"})
+    df_anno["leiden_90"]=df_anno["leiden_90"].apply(int)
+    df_anno["louvain_90"]=df_anno["louvain_90"].apply(int)
+    label2id = {label[0]:0, label[1]:1, label[2]:2}
+    df_anno=undersampling(df_anno,seed)
+    ids=df_anno.index.to_numpy()
+    if(len(label)==2):
+        label2id = {label[0]:0, label[1]:np.nan, label[2]:1}
+    df_anno["label"]=df_anno["label"].map(label2id).dropna()
+    df_anno["label"]=df_anno["label"].apply(int)
+    return (df_anno,ids)
+
+def main(DATA_INFO):
+    path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,name_pos,seed,label,DATA_PATH=DATA_INFO
+    df,ids=preproc(reading_merging(path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,name_pos,dtype_pos),label,seed)
+    id_train,id_test=train_test_split(ids, test_size=0.33, random_state=42)
+    id_test,id_val=train_test_split(ids, test_size=0.5, random_state=42)
+    df[df.index.isin(id_train)].to_csv(DATA_PATH+'train.csv',lineterminator='\n')
+    df[df.index.isin(id_test)].to_csv(DATA_PATH+'test.csv',lineterminator='\n')
+    df[df.index.isin(id_val)].to_csv(DATA_PATH+'val.csv',lineterminator='\n')
+    
+
+if __name__ == "__main__":
+    path_df=LARGE_DATA_DIR+"df_full.csv.gz"
+    name_df=['created_at', 
+             'text', 
+             'user.id',              
+             'user.screen_name', 
+             'place', 
+             'url',       
+             'retweeted_status.id', 
+             'retweeted_status.user.id',       
+             'retweeted_status.url', 
+             'annotation', 
+             'user_annotation', 
+             'lang',       
+             'leiden_90', 
+             'louvain_90', 
+             'x_pos', 
+             'y_pos']
+    dtype_df={
             "id": str,
             "text": str,
             "user.id": str,
@@ -32,67 +105,20 @@ df = pd.read_csv(
             "annotation": str,
             "user_annotation": str,
             "lang": str,
-        },
-        na_values=["", "[]"],
-        parse_dates=["created_at"],
-        lineterminator="\n",
-    )
-#DATASET WITH THE COMUNITIES
-df_com = pd.read_csv(
-    DATA_DIR+"communities_2021-06-01.csv.gz",
-    lineterminator="\n",
-    header=0,
-    names=["user.id","leiden","louvain","leiden_5000","leiden_90","louvain_5000","louvain_90"],
-    dtype={"user.id":str,
+        }
+    path_com=DATA_DIR+"communities_2021-06-01.csv.gz"
+    dtype_com={"user.id":str,
            "leiden":int,
+           "infomap":int,
            "louvain":int,
            "leiden_5000":int,
            "leiden_90":int,
            "louvain_5000":int,
-           "louvain_90":int,}
-    )
-df_com=df_com[["user.id","leiden_90","louvain_90"]]
-
-#DATASET WITH THE POSITIONS
-with open(DATA_DIR+'position.json') as f: 
-    positions = json.load(f)     
-df_pos=pd.DataFrame.from_dict(positions, orient='index',columns=["x_pos","y_pos"])
-
-#MERGING OF THE THREE DATAFRAMES
-df=df.merge(df_com,how="left",left_on="user.id",right_on="user.id")
-df=df.merge(df_pos,how="left",left_on="user.id",right_index=True)
-
-#CLEANUP OF THE DATAFRAME'S TEXT
-df_anno=df[df['annotation'].notna()]
-df_anno.loc[:,'text']=df_anno['text'].apply(lambda x: x.replace('\n',' ').replace('\t','').replace("\r\n"," ").replace('\u0085'," ").replace('\u2028'," ").replace('\u2029'," "))
-
-#RENAMING AND REMOVING COLUMNS
-df_anno=df_anno[['text','annotation',"leiden_90","louvain_90","x_pos","y_pos"]].rename(columns={'text':'sentence','annotation':'label',"leiden_90":"leiden_90","louvain_90":"louvain_90","x_pos":"x_pos","y_pos":"y_pos"})
-df_anno["leiden_90"]=df_anno["leiden_90"].apply(int)
-df_anno["louvain_90"]=df_anno["louvain_90"].apply(int)
-
-#TRAIN TEST SPLITTING WITH THREE LABELS
-df_out=undersampling(df_anno,42)
-id_train,id_test=train_test_split(df_out.index, test_size=0.33, random_state=42)
-id_test,id_val=train_test_split(id_test, test_size=0.5, random_state=42)
-id2label = {0:'AntiVax', 1:'Neutral', 2:'ProVax'}
-label2id = {'AntiVax':0, 'Neutral':1, 'ProVax':2}
-df_out["label"]=df_out["label"].map(label2id).dropna()
-#PRINTING OF THE DATAFRAMES
-df_out.loc[id_train].to_csv(DATA_DIR+'train.csv',lineterminator='\n')
-df_out.loc[id_test].to_csv(DATA_DIR+'test.csv',lineterminator='\n')
-df_out.loc[id_val].to_csv(DATA_DIR+'val.csv',lineterminator='\n')
-df_out.to_csv(DATA_DIR+'sampled.csv',lineterminator='\n')
-df_anno.to_csv(DATA_DIR+'annotated.csv',lineterminator='\n')
-
-#RELABELING FOR 2 LABEL SITUATION
-id2label = {0:'AntiVax', 1:'Neutral', 2:'ProVax'}
-label2id = {'AntiVax':0, 'Neutral':np.nan,'ProVax':1}
-df_red=df_out.copy(deep=True)
-df_red["label"]=df_out["label"].map(id2label).map(label2id).dropna()
-df_red=df_red.dropna()
-df_red["label"]=df_red["label"].apply(int)
-#PRINTING OF THE DATAFRAMES
-df_red[df_red.index.isin(id_train)].to_csv(DATA_DIR+'train_2l.csv',lineterminator='\n')
-df_red[df_red.index.isin(id_test)].to_csv(DATA_DIR+'test_2l.csv',lineterminator='\n')
-df_red[df_red.index.isin(id_val)].to_csv(DATA_DIR+'val_2l.csv',lineterminator='\n')
+           "louvain_90":int,
+           "infomap_5000":int,
+           "infomap_90":int}
+    names_com=["user.id","leiden","infomap","louvain","leiden_5000","leiden_90","louvain_5000","louvain_90","infomap_5000","infomap_90"]
+    path_pos=DATA_DIR+'position.json'
+    names_pos=["x_pos","y_pos"]
+    DATA_INFO=(path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,names_pos,random_state,labels,DATA_DIR)
+    main(DATA_INFO)
