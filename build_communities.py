@@ -17,7 +17,7 @@ from build_graphs import NETPATH, load_graph
 from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA
 
 DATAPATH = pathlib.Path(DATA_DIR)
-NETPATH.mkdir(parents=True, exist_ok=True)
+DATAPATH.mkdir(parents=True, exist_ok=True)
 
 
 def partition_core(
@@ -229,7 +229,8 @@ def sparse2igraph(adjacency: sparse.spmatrix, **kwargs: dict) -> igraph.Graph:
 
 def main(deadline: str) -> None:
     """Do the main."""
-    tail, head, usermap = load_graph(deadline)
+    path=NETPATH
+    tail, head, usermap = load_graph(deadline,path)
     adj = tail @ head.T
     p = pd.DataFrame()
 
