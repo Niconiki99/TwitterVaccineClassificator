@@ -1,4 +1,17 @@
-import pandas as pd
+"""
+The program is designed for preprocessing a dataset and preparing it for machine learning tasks. 
+It involves reading data from multiple sources, merging them into a single DataFrame, performing undersampling to balance label classes, and splitting the data into training, testing, and validation sets. The resulting datasets are then saved as CSV files.
+Data Loading and Merging:
+    Read the main dataset, communities dataset, and positions dataset.
+    Merge these datasets into a single DataFrame.
+Preprocessing:
+    Perform text cleaning and preprocessing on relevant columns.
+    Balance label classes using undersampling.
+    Map labels to numerical values.
+Train-Test-Validation Split:
+    Split the preprocessed data into training, testing, and validation sets
+
+"""import pandas as pd
 import numpy as np
 import seaborn as sns
 import json
