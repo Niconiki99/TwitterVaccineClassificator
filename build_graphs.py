@@ -21,7 +21,24 @@ NETPATH.mkdir(parents=True, exist_ok=True)
 
 
 def load_data(deadline: str,path: str) -> pd.DataFrame:
-    """Load the full dataset."""
+    """
+    Load the full dataset and filter rows based on a given deadline.
+
+    Parameters:
+    - deadline (str): The deadline timestamp to filter the dataset.
+    - path (str): The file path to the CSV dataset.
+
+    Returns:
+    - pd.DataFrame: A Pandas DataFrame containing the dataset.
+
+    Notes:
+    - The function reads a CSV file into a Pandas DataFrame, sets the 'id' column as the index,
+      and performs data type conversion for specific columns.
+    - Missing values in certain columns are specified as `["", "[]"]`.
+    - The 'created_at' column is parsed as datetime.
+    - Rows with a 'created_at' timestamp greater than or equal to the provided 'deadline'
+      are filtered out.
+    """
     df_full = pd.read_csv(
         path,
         index_col="id",
@@ -48,15 +65,26 @@ def load_data(deadline: str,path: str) -> pd.DataFrame:
 
 
 def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
-    """Load the whole dataset and compute the (tweet, retweets) pairs."""
-    # columns:
-    # id,created_at,text,user.id,user.screen_name,place,url,
-    #      retweeted_status.id,retweeted_status.user.id,retweeted_status.url,
-    #      annotation,user_annotation,lang
+    """
+    Extract (tweet, retweets) pairs from a DataFrame and organize the data.
 
-    # filter only tweets before a deadline.
+    Parameters:
+    - df_full (pd.DataFrame): The input DataFrame containing the full dataset.
 
-    # users that retweet
+    Returns:
+    - pd.DataFrame: A DataFrame containing (source, hyperlink, target) pairs representing retweets.
+
+    Notes:
+    - The function filters rows from the input DataFrame where 'retweeted_status.id' is not NaN.
+    - It selects relevant columns ('user.id', 'retweeted_status.id', 'retweeted_status.user.id') for retweets.
+    - The columns are then renamed to represent source, hyperlink, and target users.
+    - Hyperlinks are assigned numerical indices starting from 0.
+    - The function prints the number of retweets before returning the resulting DataFrame.
+
+    Example:
+    >>> df_full = load_data("2022-01-01", "path/to/your/dataset.csv")
+    >>> retweet_pairs = compute_graph(df_full)
+    """
     retweets = df_full.dropna(subset="retweeted_status.id")[
         ["user.id", "retweeted_status.id", "retweeted_status.user.id"]
     ]
@@ -118,7 +146,10 @@ def load_graph(
 ) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
     """Load head tail and usermap."""
     if(not(savenames)):
-        savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
+        try:
+            savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
+        except AttributeError:
+            savenames=[f"hyprgraph_{deadline}_head.npz",f"hyprgraph_{deadline}_tail.npz",f"hyprgraph_{deadline}_usermap.csv.gz"]
     try:
         head = sparse.load_npz(path / savenames[0])
         tail = sparse.load_npz(path / savenames[1])
