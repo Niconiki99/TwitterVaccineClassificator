@@ -80,10 +80,6 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     - The columns are then renamed to represent source, hyperlink, and target users.
     - Hyperlinks are assigned numerical indices starting from 0.
     - The function prints the number of retweets before returning the resulting DataFrame.
-
-    Example:
-    >>> df_full = load_data("2022-01-01", "path/to/your/dataset.csv")
-    >>> retweet_pairs = compute_graph(df_full)
     """
     retweets = df_full.dropna(subset="retweeted_status.id")[
         ["user.id", "retweeted_status.id", "retweeted_status.user.id"]
@@ -140,10 +136,7 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     return tail @ head.T, users
 
 
-def load_graph(
-    deadline: pd.Timestamp,
-    path : pathlib.PosixPath,savenames:list=False
-) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
+def load_graph(deadline: pd.Timestamp,path : pathlib.PosixPath,savenames:list=False) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
     """Load head tail and usermap."""
     if(not(savenames)):
         try:
@@ -172,9 +165,7 @@ def load_graph(
     return tail, head, users
 
 
-def extract_largest_component(
-    tail: sparse.csr_matrix, head: sparse.csc_matrix
-) -> (sparse.csr_matrix, sparse.csr_matrix):
+def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) -> (sparse.csr_matrix, sparse.csr_matrix):
     """Extract the largest component.
 
     remove users from smaller componets and retweets that involve those smaller components.
