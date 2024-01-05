@@ -192,7 +192,7 @@ def plot_comm_size(parts: pd.DataFrame) -> None:
         ax.set_xlim(1, 20)
         ax.axhline(0.9)
     axs[0].set_ylabel("Cumulative ratio.")
-    plt.savefig("plot_community_sizes.pdf")
+    plt.savefig(DATAPATH/"plot_community_sizes.pdf")
     plt.close()
 
 
