@@ -96,7 +96,26 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
 
 
 def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=False) -> None:
-    """Write down the hyprgraph."""
+    """
+    Write down the hypergraph.
+
+    Parameters:
+    - retweets (pd.DataFrame): DataFrame containing information about retweets, with columns "source", "target", and "hyperlink".
+    - deadline (pd.Timestamp): Timestamp representing the deadline for building the hypergraph.
+    - savenames (list, optional): List of filenames for saving the hypergraph components. If not provided, default names are used.
+
+    Returns:
+    - None
+
+    This function builds a hypergraph from retweet data and saves its components. The hypergraph is represented by two sparse matrices:
+    - The "head" matrix captures connections from retweet targets to hyperlinks.
+    - The "tail" matrix captures connections from retweet sources to hyperlinks.
+
+    The hypergraph is constructed by mapping unique users to numerical indices and using sparse matrices to represent connections between users and hyperlinks.
+
+    The function also extracts the largest connected component from the hypergraph, saving the resulting matrices and user information.
+
+    """
     print("Building hyprgraph for", deadline.date())
     if(not(savenames)):
         savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
@@ -137,7 +156,27 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
 
 
 def load_graph(deadline: pd.Timestamp,path : pathlib.PosixPath,savenames:list=False) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
-    """Load head tail and usermap."""
+    """
+    Load head, tail, and usermap matrices representing a hypergraph.
+
+    Parameters:
+    - deadline (pd.Timestamp): Timestamp representing the deadline for which to load the hypergraph.
+    - path (pathlib.PosixPath): Path to the directory containing the hypergraph components.
+    - savenames (list, optional): List of filenames for loading the hypergraph components. If not provided, default names are used.
+
+    Returns:
+    - tuple (sparse.csr_matrix, sparse.csr_matrix, pd.Series): A tuple containing the head matrix, tail matrix, and a Series representing user indices.
+
+    This function loads the head and tail matrices along with user information from the specified directory. 
+    The hypergraph components are assumed to be saved in compressed sparse row (CSR) format for efficiency.
+
+    Examples:
+    ```python
+    deadline = pd.Timestamp(datetime(2024, 1, 6))
+    path_to_hypergraph = pathlib.PosixPath("/path/to/hypergraph_data/")
+    head_matrix, tail_matrix, users_series = load_graph(deadline, path_to_hypergraph)
+    ```
+    """
     if(not(savenames)):
         try:
             savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
@@ -166,9 +205,21 @@ def load_graph(deadline: pd.Timestamp,path : pathlib.PosixPath,savenames:list=Fa
 
 
 def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) -> (sparse.csr_matrix, sparse.csr_matrix):
-    """Extract the largest component.
+    """
+    Extract the largest connected component from a hypergraph.
 
-    remove users from smaller componets and retweets that involve those smaller components.
+    Parameters:
+    - tail (sparse.csr_matrix): Sparse matrix representing the tail connections in the hypergraph.
+    - head (sparse.csc_matrix): Sparse matrix representing the head connections in the hypergraph.
+
+    Returns:
+    - tuple (sparse.csr_matrix, sparse.csr_matrix, np.ndarray): A tuple containing the tail matrix, head matrix, and an array representing user indices in the largest connected component.
+
+    This function extracts the largest connected component from a hypergraph represented by its tail and head matrices. 
+    It removes users from smaller components and corresponding retweets involving those smaller components.
+
+    The function uses the connected components algorithm to identify the largest component, projects the hypergraph matrices onto the users in the largest component, and removes retweets involving users from smaller components.
+
     """
     rtw_net = tail @ head.T
     print("Full adj", rtw_net.shape)
@@ -211,7 +262,18 @@ def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) 
 
 
 def parse_date(date: str | pd.Timestamp) -> pd.Timestamp | str:
-    """Toggle format from str to pd.Timestamp."""
+    """
+    Toggle format from string to pandas Timestamp.
+
+    Parameters:
+    - date (str or pd.Timestamp): A date represented as a string or pandas Timestamp.
+
+    Returns:
+    - pd.Timestamp or str: If the input is a string, returns a pandas Timestamp; if the input is already a pandas Timestamp, returns its string representation.
+
+    This function allows for flexible handling of date formats. If the input 'date' is a string, it converts it to a pandas Timestamp with a specific time (00:00:00) and timezone offset (+02). If the input is already a pandas Timestamp, it returns its string representation in the format 'YYYY-MM-DD'.
+
+    """
     if isinstance(date, str):
         return pd.Timestamp(date + "T00:00:00+02")
     return date.isoformat().split()[0].split("T")[0]
