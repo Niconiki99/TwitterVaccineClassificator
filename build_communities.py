@@ -1,4 +1,13 @@
-"""Starting from the graphs, compute the community structures."""
+"""Starting from the graphs, compute the community structures.
+This code snippet contains functions for computing partitions, transition matrices, and simplifying community structures in a hypergraph. 
+It utilizes various libraries such as igraph, networkx, and sknetwork for community detection and analysis. 
+Defining Community Partitioning for Hypergraph Core:
+partition_core function is defined to compute the community partition of the core of a hypergraph; removing dangling nodes
+Defining Community Partitioning for Graph:
+partition function is defined to compute community partitions for a given graph using various methods (e.g., Louvain, Leiden).
+Simplifying Community Structure:
+simplify_community_struct function reduces the number of communities based on either a community size cutoff or a coverage ratio.
+"""
 
 from __future__ import annotations
 
@@ -23,10 +32,20 @@ DATAPATH.mkdir(parents=True, exist_ok=True)
 def partition_core(
     tail: sparse.spmatrix, head: sparse.spmatrix, usermap: pd.Series, kind="sk_louvain"
 ) -> pd.Series:
-    """Compute the partition of the core of the graph.
+    """
+    Compute the partition of the core of the graph.
+    The function computes the core of the hypergraph by removing dangling nodes.
+    It then computes the community structure using the specified algorithm (default is Louvain).
+    Dangling nodes are added to the community of their neighboring core nodes.
 
-    Remove dangling nodes and compute the community structure.
-    Add the dangling nodes to the neighboring community.
+    Parameters:
+    - tail (sparse.spmatrix): Sparse matrix representing the tail of the hypergraph.
+    - head (sparse.spmatrix): Sparse matrix representing the head of the hypergraph.
+    - usermap (pd.Series): Series mapping user indices to user IDs.
+    - kind (str): Algorithm for community detection (default is "sk_louvain").
+
+    Returns:
+    - pd.Series: Series containing the community assignments for each user in the core.
     """
     adjacency = (tail @ head.T).tocsr()
 
@@ -84,12 +103,20 @@ def partition_core(
     return core_partition
 
 
-def partition(
-    adj: sparse.spmatrix, kind: str = "louvain", usermap: pd.Series | None = None
-) -> pd.Series:
-    """Compute partitions with various methods."""
-    print("Computing", kind)
-
+def partition(adj: sparse.spmatrix, kind: str = "louvain", usermap: pd.Series | None = None) -> pd.Series:
+    """
+    Compute partitions with various methods. In particular using Louvain and Leiden methods:
+    If 'usermap' is provided, it maps the indices to user IDs in the output Series.
+    
+    Parameters:
+    - adj (sparse.spmatrix): Sparse adjacency matrix representing the graph.
+    - kind (str): Method for community detection (default is "louvain").
+    - usermap (pd.Series | None): Series mapping user indices to user IDs (optional).
+    
+    Returns:
+    - pd.Series: Series containing the community assignments for each node.
+    """
+    print("Computing",kind)
     t0 = time()
     if kind == "louvain":
         p = nx.community.greedy_modularity_communities(
@@ -122,57 +149,19 @@ def partition(
     return p
 
 
-def compute_transition_matrix(matrix: sparse.csr_matrix, niter: int = 10000) -> tuple(
-    sparse.spmatrix, sparse.spmatrix
-):
-    r"""Return the transition matrix.
 
-    Parameters
-    ----------
-    matrix : sparse.spmatrix
-        the adjacency matrix (square shape)
-    niter : int (default=10000)
-        number of iteration to converge to the steadystate. (Default value = 10000)
-
-    Returns
-    -------
-    trans : np.spmatrix
-        The transition matrix.
-    v0 : np.matrix
-        the steadystate
-    """
-    # marginal
-    tot = matrix.sum(0).A1
-    # fix zero division
-    tot_zero = tot == 0
-    tot[tot_zero] = 1
-    # transition matrix
-    trans = matrix @ sparse.diags(1 / tot)
-
-    # fix transition matrix with zero-sum rows
-    trans += sparse.diags(tot_zero.astype(np.float64), offsets=0, shape=trans.shape)
-
-    v0 = matrix.sum(0) + 1
-    # v0 = sparse.csr_matrix(np.random.random(matrix.shape[0]))
-    v0 = v0.reshape(matrix.shape[0], 1) / v0.sum()
-    trange = tqdm.trange(0, niter)
-    for i in trange:
-        # evolve v0
-        v1 = v0.copy()
-
-        v0 = trans.T @ v0
-        diff = np.sum(np.abs(v1 - v0))
-        if i % 100 == 0:
-            trange.set_description(desc=f"diff: {diff}|", refresh=True)
-        if diff < 1e-5:
-            break
-    print(f"TRANS: performed {i + 1} itertions. (diff={diff:2.5f})")
-
-    return trans, v0.A1
 
 
 def plot_comm_size(parts: pd.DataFrame) -> None:
-    """Plot the community sizes."""
+    """
+    Plot the community sizes.
+
+    Parameters:
+    - parts (pd.DataFrame): DataFrame containing community assignments for nodes.
+
+    Returns:
+    - None
+    """
     from matplotlib import pyplot as plt
 
     fig, axs = plt.subplots(
@@ -199,11 +188,17 @@ def plot_comm_size(parts: pd.DataFrame) -> None:
 def simplify_community_struct(
     community: pd.Series, comm_size: int = 0, coverage: float = 0.0
 ) -> pd.Series:
-    """Reduce the number of communities.
+    """
+    Reduce the number of communities based on either a community size cutoff or a coverage ratio.
+    The choice depends on of if 'comm_size' is specified or if 'coverage' is specified
 
-    The reduction can be done with:
-    - a community size cutoff
-    - a coverage ratio
+    Parameters:
+    - community (pd.Series): Series containing community assignments for nodes.
+    - comm_size (int): Community size cutoff. Communities smaller than this size will be removed (default is 0).
+    - coverage (float): Coverage ratio. Larger communities covering at least this ratio of the network will be kept (default is 0.0).
+
+    Returns:
+    - pd.Series: Simplified community assignments after reduction.
     """
     counts = community.value_counts().sort_values(ascending=False)
     if comm_size > 0:
@@ -220,7 +215,16 @@ def simplify_community_struct(
 
 
 def sparse2igraph(adjacency: sparse.spmatrix, **kwargs: dict) -> igraph.Graph:
-    """Convert to igraph."""
+    """
+    Convert a sparse matrix to an igraph Graph.
+
+    Parameters:
+    - adjacency (sparse.spmatrix): Sparse adjacency matrix representing the graph.
+    - **kwargs (dict): Additional keyword arguments to pass to the igraph.Graph constructor.
+
+    Returns:
+    - igraph.Graph: An igraph Graph representation of the input sparse matrix.
+    """
     i, j, v = sparse.find(adjacency)
     graph = igraph.Graph(edges=zip(i, j), **kwargs)
     graph.es["weight"] = v
