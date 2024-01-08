@@ -1,9 +1,20 @@
 """Build graphs from retweets.
 
-It will build:
-    1. retweet network (symmetric)
-    2. retweet network (directed)
-    3. return hyprgraph (directed, head + tail)
+The overall goal is the creation of different types of graphs representing retweet interactions in a social media dataset.
+Data Loading:
+The load_data function loads a CSV file containing social media data into a Pandas DataFrame. It filters the rows based on a provided deadline timestamp, which acts as a cutoff for the dataset.
+Graph Construction:
+The compute_graph function extracts tweet-retweet pairs from the DataFrame, organizing the data into a new DataFrame with columns for the source, hyperlink, and target of retweets.
+Hypergraph Construction:
+The write_hypergraph function builds a hypergraph from the retweet data. It uses sparse matrices to represent connections between retweet sources/targets and hyperlinks. The hypergraph is constructed by mapping unique users to numerical indices.
+Graph Loading:
+The load_graph function loads the hypergraph components (head and tail matrices, along with user information) from a specified directory.
+Largest Connected Component Extraction:
+The extract_largest_component function extracts the largest connected component from the hypergraph, removing users and corresponding retweets from smaller components.
+
+NetworkX and External Dependencies:
+The code uses the NetworkX library for graph-related operations.
+External dependencies include numpy, pandas, scipy, and pathlib.
 """
 from __future__ import annotations
 
