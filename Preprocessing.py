@@ -17,9 +17,7 @@ import numpy as np
 import seaborn as sns
 import json
 from sklearn.model_selection import train_test_split
-from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR
-labels=['ProVax','AntiVax','Neutral']
-random_state=42
+from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,labels,random_state
 
 def undersampling(df: pd.DataFrame, random_state: int) -> pd.DataFrame:
     """
@@ -77,8 +75,9 @@ def reading_merging(path_df: str,
         )
     df_com = pd.read_csv(
         path_com,
+        header=0,
         names=names_com,
-        dtype=dtype_df,
+        dtype=dtype_com,
         lineterminator="\n"
     )
     df_com=df_com[["user.id","leiden_90","louvain_90"]]
@@ -143,50 +142,6 @@ def main(DATA_INFO: Tuple):
     
 
 if __name__ == "__main__":
-    path_df=LARGE_DATA_DIR+"df_full.csv.gz"
-    name_df=['created_at', 
-             'text', 
-             'user.id',              
-             'user.screen_name', 
-             'place', 
-             'url',       
-             'retweeted_status.id', 
-             'retweeted_status.user.id',       
-             'retweeted_status.url', 
-             'annotation', 
-             'user_annotation', 
-             'lang',       
-             'leiden_90', 
-             'louvain_90', 
-             'x_pos', 
-             'y_pos']
-    dtype_df={
-            "id": str,
-            "text": str,
-            "user.id": str,
-            "user.screen_name": str,
-            "place": str,
-            "url": str,
-            "retweeted_status.id": str,
-            "retweeted_status.user.id": str,
-            "retweeted_status.url": str,
-            "annotation": str,
-            "user_annotation": str,
-            "lang": str,
-        }
-    path_com=DATA_DIR+"communities_2021-06-01.csv.gz"
-    dtype_com={"user.id":str,
-           "leiden":int,
-           "infomap":int,
-           "louvain":int,
-           "leiden_5000":int,
-           "leiden_90":int,
-           "louvain_5000":int,
-           "louvain_90":int,
-           "infomap_5000":int,
-           "infomap_90":int}
-    names_com=["user.id","leiden","infomap","louvain","leiden_5000","leiden_90","louvain_5000","louvain_90","infomap_5000","infomap_90"]
-    path_pos=DATA_DIR+'position.json'
-    names_pos=["x_pos","y_pos"]
+    from configuration_params import path_df,name_df,dtype_df,path_com,dtype_com,names_com,path_pos,names_pos
     DATA_INFO=(path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,names_pos,random_state,labels,DATA_DIR)
     main(DATA_INFO)
