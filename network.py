@@ -8,34 +8,23 @@ import re,os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR, NETWORK_DAT
+from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR, NETWORK_DATA
 from fa2 import ForceAtlas2
-MAKE=True #Set it true to make again the positions of the users, using fa2
-def col(utoplot,com2col,mappa,df):
-    colors=np.empty(len(utoplot),dtype="<U20")
-    j=0
-    for i,uid in enumerate(utoplot):
-        try:
-            colors[i]=com2col[mappa[uid]]
-        except KeyError:
-            colors[i]=com2col[7]
-            j+=1
-    return colors,j
 
-df_com = pd.read_csv(
-      DATA_DIR+"communities_2021-06-01.csv.gz",
+def load_com(path_com,names_com,dtype_com):
+    df_com = pd.read_csv(
+        path_com,
+        header=0,
+        names=["user.id","leiden","louvain","leiden_5000","leiden_90","louvain_5000","louvain_90"],
+        dtype=dtype_com,
         lineterminator="\n"
     )
+    dict=df_com.set_index("user.id").to_dict("series")
+    leiden=dict["leiden_90"]
+    louvain=dict["louvain_90"]
+    return(leiden,louvain)
 
-
-df_com=df_com[['Unnamed: 0','leiden_90', 'louvain_90']].rename(columns={'Unnamed: 0':'user.id','leiden_90':'leiden_90','louvain_90':'louvain_90'})
-#df_com.set_index("user.id")
-df_com["user.id"]=df_com["user.id"].apply(str)
-dict=df_com.set_index("user.id").to_dict("series")
-leiden=dict["leiden_90"]
-louvain=dict["louvain_90"]
-G=nx.read_graphml(NETWORK_DATA+"retweet_graph_undirected_2021-06-01.graphml")
-if MAKE:
+def position_creation(G,path_to_save=DATA_DIR+'position.json'):
     forceatlas2 = ForceAtlas2(
                         # Behavior alternatives
                         outboundAttractionDistribution=True,  # Dissuade hubs
@@ -57,81 +46,56 @@ if MAKE:
                         # Log
                         verbose=True)
     positions = forceatlas2.forceatlas2_networkx_layout(G, pos=None, iterations=200)
-    with open(DATA_DIR+'position.json', 'w') as convert_file: 
-     convert_file.write(json.dumps(positions))
-else:
+    with open(path_to_save, 'w') as convert_file: 
+        convert_file.write(json.dumps(positions))
+    return positions
+
+def pos_reading(path_to_read=DATA_DIR+'position.json'):
     with open(DATA_DIR+'position.json') as f: 
         positions = json.load(f)
+    return positions
 
-#DRAWING
-utoplot=list(positions.keys())
-sizes=np.array([G.degree(u) for u in utoplot])
-sizes=np.interp(sizes, (sizes.min(), sizes.max()), (5, 500))
-com_edges=list(G.edges())
-print(len(com_edges), 'edges in the network')
-
-xfa=[positions[u][0] for u in utoplot]
-yfa=[positions[u][1] for u in utoplot]
-#com_ids={c:list(set([u for u,com in com_of_user.items() if com==c])) for c in comtodraw}
-
-#com2col={'A':'dodgerblue','B':'coral','C':'orchid','D':'deepskyblue','E':'orange',
-#        'F':'grey','G':'deeppink','H':'black','I':'yellow','J':'brown','K':'cyan',
-#        'L':'lime','M':'green','N':'slateblue'}
-com2col=['dodgerblue','orange','grey','cyan','pink','peru','white','rebeccapurple']
-#com2col={com:(col  if com=='I' else 'lightgrey') for com,col in com2col.items()}
-colors_ld,non_com_ld=col(utoplot,com2col,leiden,df_com)
-colors_lv,non_com_lv=col(utoplot,com2col,louvain,df_com)
-print(str(non_com_ld)+" elements are in no comunity with leiden method")
-print(str(non_com_lv)+" elements are in no comunity with louvain method")
-#colors=[com2col[jo] if com_of_user[u]==jo else 'lightgrey' for u in Gcomp.nodes]
-#colors=['red' if com_of_user[u]==jo else 'lightgrey' for u in Gcomp.nodes]
-#color="red"
-s_t=time.time()
-f=plt.figure(dpi=500,figsize=(12,12))
-plt.scatter(xfa,yfa,c=colors_ld,s=sizes,alpha=.6,
-            marker='.',edgecolors='black',linewidths=0)
-#nx.draw_networkx_edges(
-#    G, positions,edgelist=com_edges,alpha=0.01,edge_color='white',
-#    connectionstyle="arc3,rad=0.3"  # <-- THIS IS IT
-#)
-#markers = [plt.Line2D([0,0],[0,0],color=colors, marker='o', linestyle='') for com,color in com2col.items() if com!='XX']
-#scritte=[c+': {:.1f}%'.format(100*com2size[c]) for c in comtodraw]
-#plt.legend(markers, scritte, numpoints=1,loc='lower left',#'upper right',
-#          fontsize=14)3
-#plt.xlim(-6000,7000)
-#plt.ylim(-6000,6000)
-
-plt.axis('off')
-plt.gca().set_facecolor('black')
-f.set_facecolor('black')
+def drawing_params(positions,G,com2col,mappa):
+    utoplot=list(positions.keys())
+    sizes=np.array([G.degree(u) for u in utoplot])
+    sizes=np.interp(sizes, (sizes.min(), sizes.max()), (5, 500))
+    com_edges=list(G.edges())
+    print(len(com_edges), 'edges in the network')
+    xfa=[positions[u][0] for u in utoplot]
+    yfa=[positions[u][1] for u in utoplot]
+    colors=np.empty(len(utoplot),dtype="<U20")
+    for i,uid in enumerate(utoplot):
+        try:
+            colors[i]=com2col[mappa[uid]]
+        except (KeyError,IndexError):
+            colors[i]=com2col[7]
+    return (utoplot,sizes,com_edges,xfa,yfa,colors)
+    
+def drawing(drawing_params,path_to_draw=DATA_DIR+"network_map.pdf"):
+    utoplot,sizes,com_edges,xfa,yfa,colors=drawing_params
+    s_t=time.time()
+    f=plt.figure(dpi=500,figsize=(12,12))
+    plt.scatter(xfa,yfa,c=colors,s=sizes,alpha=.6,
+                marker='.',edgecolors='black',linewidths=0)
+    plt.axis('off')
+    plt.gca().set_facecolor('black')
+    f.set_facecolor('black')
+    plt.savefig(path_to_draw, bbox_inches='tight')
+    plt.close()
+    e_t=time.time()-s_t
+    print('Elapsed time: {} min'.format(e_t/60))
+    
+def main(MAKE,com2col,path_com,dtype_com,names_com,path_to_save=DATA_DIR+'position.json',path_to_read=DATA_DIR+'position.json'):
+    G=nx.read_graphml(NETWORK_DATA+"/retweet_graph_undirected_2021-06-01.graphml")
+    leiden,louvain=load_com(path_com,names_com,dtype_com)
+    if MAKE:
+        positions=position_creation(G)
+    else:
+        positions=pos_reading()
+    drawing(drawing_params(positions,G,com2col,leiden))
 
 
-plt.savefig(DATA_DIR+'net_ld.png', bbox_inches='tight')
-#plt.savefig('images/'+filen+'_j'+jo+'.png', bbox_inches='tight')
-plt.clf()
-e_t=time.time()-s_t
-print('Elapsed time: {} min'.format(e_t/60))
-s_t=time.time()
-f=plt.figure(dpi=500,figsize=(12,12))
-plt.scatter(xfa,yfa,c=colors_lv,s=sizes,alpha=.6,
-            marker='.',edgecolors='black',linewidths=0)
-#nx.draw_networkx_edges(
-#    G, positions,edgelist=com_edges,alpha=0.01,edge_color='white',
-#    connectionstyle="arc3,rad=0.3"  # <-- THIS IS IT
-#)
-#markers = [plt.Line2D([0,0],[0,0],color=colors, marker='o', linestyle='') for com,color in com2col.items() if com!='XX']
-#scritte=[c+': {:.1f}%'.format(100*com2size[c]) for c in comtodraw]
-#plt.legend(markers, scritte, numpoints=1,loc='lower left',#'upper right',
-#          fontsize=14)3
-#plt.xlim(-6000,7000)
-#plt.ylim(-6000,6000)
+if __name__ == "__main__":
+    from configuration_params import MAKE,com2col,path_com,dtype_com,names_com
+    main(MAKE,com2col,path_com,dtype_com,names_com)
 
-plt.axis('off')
-plt.gca().set_facecolor('black')
-f.set_facecolor('black')
-
-
-plt.savefig(DATA_DIR+'net_lv.png', bbox_inches='tight')
-#plt.savefig('images/'+filen+'_j'+jo+'.png', bbox_inches='tight')
-e_t=time.time()-s_t
-print('Elapsed time: {} min'.format(e_t/60))
