@@ -23,9 +23,7 @@ import tqdm
 from scipy import sparse
 
 from build_graphs import NETPATH, load_graph
-from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA
-
-DATAPATH = pathlib.Path(DATA_DIR)
+from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA,DATAPATH
 DATAPATH.mkdir(parents=True, exist_ok=True)
 
 
@@ -254,5 +252,5 @@ def main(deadline: str) -> None:
 
 
 if __name__ == "__main__":
-    deadline="2021-06-01"
+    from configuration_params import deadline
     main(deadline)
