@@ -25,9 +25,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from scipy import sparse
-from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA
-
-NETPATH = pathlib.Path(NETWORK_DATA)
+from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA,NETPATH
 NETPATH.mkdir(parents=True, exist_ok=True)
 
 
@@ -316,4 +314,5 @@ def main(deadline: pd.Timestamp) -> None:
 
 
 if __name__ == "__main__":
-        main(parse_date("2021-06-01"))
+    from configuration_params import deadline
+    main(parse_date(deadline))
