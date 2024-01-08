@@ -21,7 +21,7 @@ from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR
 labels=['ProVax','AntiVax','Neutral']
 random_state=42
 
-def (df: pd.DataFrame, random_state: int) -> pd.DataFrame:
+def undersampling(df: pd.DataFrame, random_state: int) -> pd.DataFrame:
     """
     Perform undersampling on a DataFrame to balance label classes.
 
@@ -91,7 +91,7 @@ def reading_merging(path_df: str,
     df=df.merge(df_pos,how="left",left_on="user.id",right_index=True)
     return df
 
-def preproc(    df: pd.DataFrame,
+def preproc(df: pd.DataFrame,
     label: list,
     seed: int
 ) -> Tuple[pd.DataFrame, np.ndarray]:
@@ -110,7 +110,6 @@ def preproc(    df: pd.DataFrame,
 
     Returns:
     - Tuple[pd.DataFrame, np.ndarray]: Tuple containing the preprocessed DataFrame and corresponding indices.
-
     """
     df_anno=df[df['annotation'].notna()]
     df_anno.loc[:,'text']=df_anno['text'].apply(lambda x: x.replace('\n',' ').replace('\t','').replace("\r\n"," ").replace('\u0085'," ").replace('\u2028'," ").replace('\u2029'," "))
