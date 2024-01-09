@@ -40,7 +40,6 @@ def undersampling(df: pd.DataFrame, random_state: int) -> pd.DataFrame:
     return out
 
 def reading_merging(path_df: str,
-    name_df: list,
     dtype_df: dict,
     path_com: str,
     names_com: list,
@@ -53,7 +52,6 @@ def reading_merging(path_df: str,
 
     Parameters:
     - path_df (str): Filepath for the main DataFrame CSV file.
-    - name_df (list): Column names for the main DataFrame.
     - dtype_df (dict): Data types for columns in the main DataFrame.
     - path_com (str): Filepath for the community DataFrame CSV file.
     - names_com (list): Column names for the community DataFrame.
@@ -67,21 +65,19 @@ def reading_merging(path_df: str,
     df = pd.read_csv(
         path_df,
         index_col="id",
-        name=name_df,
         dtype=dtype_df,
         na_values=["", "[]"],
         parse_dates=["created_at"],
         lineterminator="\n",
         )
     df_com = pd.read_csv(
-        path_com,
-        header=0,
-        names=names_com,
-        dtype=dtype_com,
-        lineterminator="\n"
-    )
+            path_com,
+            header=0,
+            names=names_com,
+            dtype=dtype_com,
+            lineterminator="\n"
+        )
     df_com=df_com[["user.id","leiden_90","louvain_90"]]
-    df_com["user.id"]
     with open(path_pos) as f: 
         positions = json.load(f)     
     # reconstructing the data as a dictionary 
@@ -93,7 +89,7 @@ def reading_merging(path_df: str,
 def preproc(df: pd.DataFrame,
     label: list,
     seed: int
-) -> Tuple[pd.DataFrame, np.ndarray]:
+) -> tuple[pd.DataFrame, np.ndarray]:
     """
     Preprocess DataFrame for text classification.
     Missing values in the text will be replaced, unused columns will be removed, and used columns will be renamed.
@@ -108,7 +104,7 @@ def preproc(df: pd.DataFrame,
     - seed (int): Random seed for undersampling.
 
     Returns:
-    - Tuple[pd.DataFrame, np.ndarray]: Tuple containing the preprocessed DataFrame and corresponding indices.
+    - tuple[pd.DataFrame, np.ndarray]: tuple containing the preprocessed DataFrame and corresponding indices.
     """
     df_anno=df[df['annotation'].notna()]
     df_anno.loc[:,'text']=df_anno['text'].apply(lambda x: x.replace('\n',' ').replace('\t','').replace("\r\n"," ").replace('\u0085'," ").replace('\u2028'," ").replace('\u2029'," "))
@@ -119,8 +115,8 @@ def preproc(df: pd.DataFrame,
                                                                                                 "louvain_90":"louvain_90",
                                                                                                 "x_pos":"x_pos",
                                                                                                 "y_pos":"y_pos"})
-    df_anno["leiden_90"]=df_anno["leiden_90"].apply(int)
-    df_anno["louvain_90"]=df_anno["louvain_90"].apply(int)
+    #df_anno["leiden_90"]=df_anno["leiden_90"].apply(int)
+    #df_anno["louvain_90"]=df_anno["louvain_90"].apply(int)
     label2id = {label[0]:0, label[1]:1, label[2]:2}
     df_anno=undersampling(df_anno,seed)
     ids=df_anno.index.to_numpy()
@@ -130,15 +126,17 @@ def preproc(df: pd.DataFrame,
     df_anno["label"]=df_anno["label"].apply(int)
     return (df_anno,ids)
 
-def main(DATA_INFO: Tuple):
+
+def main(DATA_INFO: tuple):
     """Do the main"""
     path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,name_pos,seed,label,DATA_PATH=DATA_INFO
-    df,ids=preproc(reading_merging(path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,name_pos,dtype_pos),label,seed)
+    df=reading_merging(path_df,dtype_df,path_com,names_com,dtype_com,path_pos,name_pos)
+    df_anno,ids=preproc(df,label,seed)
     id_train,id_test=train_test_split(ids, test_size=0.33, random_state=42)
     id_test,id_val=train_test_split(ids, test_size=0.5, random_state=42)
-    df[df.index.isin(id_train)].to_csv(DATA_PATH+'train.csv',lineterminator='\n')
-    df[df.index.isin(id_test)].to_csv(DATA_PATH+'test.csv',lineterminator='\n')
-    df[df.index.isin(id_val)].to_csv(DATA_PATH+'val.csv',lineterminator='\n')
+    df_anno[df_anno.index.isin(id_train)].to_csv(DATA_PATH+'train.csv',lineterminator='\n')
+    df_anno[df_anno.index.isin(id_test)].to_csv(DATA_PATH+'test.csv',lineterminator='\n')
+    df_anno[df_anno.index.isin(id_val)].to_csv(DATA_PATH+'val.csv',lineterminator='\n')
     
 
 if __name__ == "__main__":
