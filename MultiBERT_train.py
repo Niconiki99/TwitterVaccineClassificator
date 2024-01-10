@@ -1,3 +1,18 @@
+""" 
+The provided script is a combination of functions and main training logic for a multimodal classification model. The script is designed to perform tasks such as reading and preprocessing datasets, defining model configurations, and training a transformer model on multimodal data (text and tabular).
+
+Libraries Used:
+numpy: Fundamental package for scientific computing with Python.
+scipy.special: Additional functions for mathematical operations (used for softmax).
+sklearn.metrics: Metrics for evaluating classification models (e.g., ROC AUC, precision-recall curve, confusion matrix).
+re, os: Regular expressions and operating system interfaces.
+pandas: Data manipulation and analysis library.
+seaborn: Data visualization library based on Matplotlib.
+tqdm.auto: A fast, extensible progress bar for loops and CLI.
+torch: PyTorch library for deep learning.
+transformers: Hugging Face's Transformers library for natural language processing (NLP) tasks.
+multimodal_transformers: Custom module for multimodal transformers.
+datasets: Hugging Face's Datasets library for easy access to datasets."""
 import numpy as np
 from scipy.special import softmax
 from sklearn.metrics import (
@@ -35,7 +50,36 @@ from sklearn.metrics import (
 )
 
 
-def calc_classification_metrics(p: EvalPrediction):
+def calc_classification_metrics(p: EvalPrediction)-> dict:
+"""
+    Calculate various classification metrics based on the evaluation predictions.
+
+    Parameters:
+    - p (EvalPrediction): An instance of EvalPrediction containing prediction and label information.
+
+    Returns:
+    - result (dict): A dictionary containing calculated classification metrics.
+
+    Classification Metrics:
+    1. For Binary Classification:
+        - roc_auc: Receiver Operating Characteristic Area Under the Curve (ROC AUC) score.
+        - threshold: Threshold value that maximizes the F1 score in precision-recall curve.
+        - pr_auc: Area Under the Precision-Recall Curve (PR AUC) score.
+        - recall: Recall at the selected threshold.
+        - precision: Precision at the selected threshold.
+        - f1: F1 score at the selected threshold.
+        - tn: True Negative count.
+        - fp: False Positive count.
+        - fn: False Negative count.
+        - tp: True Positive count.
+
+    2. For Multi-class Classification:
+        - acc: Accuracy.
+        - f1: Weighted F1 score.
+        - acc_and_f1: Average of Accuracy and Weighted F1 score.
+        - mcc: Matthews Correlation Coefficient.
+
+    """
     predictions = p.predictions[0]
     pred_labels = np.argmax(predictions, axis=1)
     pred_scores = softmax(predictions, axis=1)[:, 1]
@@ -72,7 +116,55 @@ def calc_classification_metrics(p: EvalPrediction):
         }
 
     return result
-def read_dataset(tokenizer,data_path,text_cols,categorical_encode_type,numerical_transformer_method,label_col,label_list):
+
+def read_dataset(
+    tokenizer: PreTrainedTokenizer,
+    data_path: str,
+    text_cols: list,
+    categorical_encode_type: str,
+    numerical_transformer_method: str,
+    label_col: str,
+    label_list: list
+) -> tuple:
+    """
+    Reads and preprocesses datasets from a specified data path using the provided configurations.
+
+    Parameters:
+    - tokenizer (PreTrainedTokenizer): The tokenizer used for tokenizing text data.
+    - data_path (str): Path to the dataset folder.
+    - text_cols (list): List of column names containing text data in the dataset.
+    - categorical_encode_type (str): Type of encoding for categorical variables (e.g., 'one-hot', 'label').
+    - numerical_transformer_method (str): Method for transforming numerical variables (e.g., 'standard', 'minmax').
+    - label_col (str): Name of the column containing labels in the dataset.
+    - label_list (list): List of possible label values.
+
+    Returns:
+    - train_dataset (torch.utils.data.dataset): Preprocessed training dataset.
+    - val_dataset (torch.utils.data.dataset): Preprocessed validation dataset.
+    - test_dataset (torch.utils.data.dataset): Preprocessed test dataset.
+
+    Usage Example:
+    ```python
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    data_path = "path/to/dataset"
+    text_cols = ["text_column"]
+    categorical_encode_type = "one-hot"
+    numerical_transformer_method = "standard"
+    label_col = "label_column"
+    label_list = [0, 1]
+
+    train_dataset, val_dataset, test_dataset = read_dataset(
+        tokenizer,
+        data_path,
+        text_cols,
+        categorical_encode_type,
+        numerical_transformer_method,
+        label_col,
+        label_list,
+    )
+    """
     train_dataset, val_dataset, test_dataset = load_data_from_folder(
         data_path,
         text_cols=text_cols,
@@ -85,7 +177,64 @@ def read_dataset(tokenizer,data_path,text_cols,categorical_encode_type,numerical
     )
     return train_dataset,val_dataset,test_dataset
     
-def read_and_convert_df(path,names,dtype,text_cols,tokenizer,categorical_cols,numerical_cols,categorical_encode_type,label_col,label_list):
+def read_and_convert_df(
+    path: str,
+    names: List[str],
+    dtype: dict,
+    text_cols: List[str],
+    tokenizer: PreTrainedTokenizer,
+    categorical_cols: List[str],
+    numerical_cols: List[str],
+    categorical_encode_type: str,
+    label_col: str,
+    label_list: List[int]
+) -> torch.utils.data.dataset:
+    """
+    Reads a CSV file into a DataFrame, preprocesses it, and converts it into a dataset suitable for training.
+
+    Parameters:
+    - path (str): Path to the CSV file.
+    - names (List[str]): List of column names for the CSV file.
+    - dtype (dict): Dictionary specifying the data types for columns in the DataFrame.
+    - text_cols (List[str]): List of column names containing text data in the dataset.
+    - tokenizer (PreTrainedTokenizer): The tokenizer used for tokenizing text data.
+    - categorical_cols (List[str]): List of column names containing categorical variables in the dataset.
+    - numerical_cols (List[str]): List of column names containing numerical variables in the dataset.
+    - categorical_encode_type (str): Type of encoding for categorical variables (e.g., 'one-hot', 'label').
+    - label_col (str): Name of the column containing labels in the dataset.
+    - label_list (List[int]): List of possible label values.
+
+    Returns:
+    - dataset (torch.utils.data.dataset): A dataset consistent with pytorch requirements
+
+    Usage Example:
+    ```python
+    from transformers import AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    path = "path/to/dataset.csv"
+    names = ["id", "leiden_90", "louvain_90", "text_col", "label_col"]
+    dtype = {"id": int, "leiden_90": int, "louvain_90": int, "text_col": str, "label_col": int}
+    text_cols = ["text_col"]
+    categorical_cols = ["leiden_90", "louvain_90"]
+    numerical_cols = []
+    categorical_encode_type = "label"
+    label_col = "label_col"
+    label_list = [0, 1]
+
+    dataset = read_and_convert_df(
+        path,
+        names,
+        dtype,
+        text_cols,
+        tokenizer,
+        categorical_cols,
+        numerical_cols,
+        categorical_encode_type,
+        label_col,
+        label_list,
+    )
+    """
     df= pd.read_csv(
         path,
         names=names,
@@ -109,7 +258,48 @@ def read_and_convert_df(path,names,dtype,text_cols,tokenizer,categorical_cols,nu
     )
     return dataset
 
-def set_tab_config(combine_feat_method,cat_feat_dim,numerical_feat_dim,num_labels):
+def set_tab_config(
+    combine_feat_method: str,
+    cat_feat_dim: int,
+    numerical_feat_dim: int,
+    num_labels: int
+) -> TabularConfig:
+    """
+    Set configuration parameters for tabular data processing.
+
+    Parameters:
+    - combine_feat_method (str): Method of combining tabular data.
+    - cat_feat_dim (int): Dimensionality of categorical features.
+    - numerical_feat_dim (int): Dimensionality of numerical features.
+    - num_labels (int): Number of labels in the classification task.
+
+    Returns:
+    - tabular_config (TabularConfig): Configuration object for tabular data processing.
+
+    Usage Example:
+    ```python
+    combine_feat_method = "method_name"
+    cat_feat_dim = 10
+    numerical_feat_dim = 5
+    num_labels = 2
+
+    tabular_config = set_tab_config(
+        combine_feat_method,
+        cat_feat_dim,
+        numerical_feat_dim,
+        num_labels
+    )
+    ```
+
+    Note:
+    - `combine_feat_method`: Specify the method of combining tabular data the choice is between:
+        'concat',
+        'mlp_on_categorical_then_concat',
+        'individual_mlps_on_cat_and_numerical_feats_then_concat',
+        'mlp_on_concatenated_cat_and_numerical_feats_then_concat',
+        'attention_on_cat_and_numerical_feats',
+        'gating_on_cat_and_num_feats_then_sum',
+    """
     tabular_config = TabularConfig(
             combine_feat_method=combine_feat_method,  # change this to specify the method of combining tabular data
             cat_feat_dim=cat_feat_dim,  # need to specify this
@@ -118,7 +308,34 @@ def set_tab_config(combine_feat_method,cat_feat_dim,numerical_feat_dim,num_label
     )
     return tabular_config
 
-def set_training_args(overwrite_output_dir,do_train,do_eval,per_device_train_batch_size,num_train_epochs,logging_steps,eval_steps,auto_find_batch_size,dataloader_drop_last):
+def set_training_argsdef set_training_args(
+    overwrite_output_dir: bool,
+    do_train: bool,
+    do_eval: bool,
+    per_device_train_batch_size: int,
+    num_train_epochs: int,
+    logging_steps: int,
+    eval_steps: int,
+    auto_find_batch_size: bool,
+    dataloader_drop_last: bool
+) -> TrainingArguments:
+    """
+    Set training configuration parameters.
+
+    Parameters:
+    - overwrite_output_dir (bool): Whether to overwrite the output directory if it exists.
+    - do_train (bool): Whether to perform training.
+    - do_eval (bool): Whether to perform evaluation.
+    - per_device_train_batch_size (int): Batch size per CPU for training.
+    - num_train_epochs (int): Number of training epochs.
+    - logging_steps (int): Number of steps between each logging update.
+    - eval_steps (int): Number of steps between each evaluation run.
+    - auto_find_batch_size (bool): Whether to automatically find an efficient batch size.
+    - dataloader_drop_last (bool): Whether to drop the last batch in dataloader if its size is smaller than the specified batch size.
+
+    Returns:
+    - training_args (TrainingArguments): Configuration object for training.
+    """
     training_args = TrainingArguments(
         output_dir=TRANSFORMERS_CACHE_DIR,
         logging_dir=TRANSFORMERS_CACHE_DIR,
@@ -135,6 +352,7 @@ def set_training_args(overwrite_output_dir,do_train,do_eval,per_device_train_bat
         )
     return training_args
 def main():
+    """Do the main"""
     tokenizer = AutoTokenizer.from_pretrained(bert)
     train_dataset=read_and_convert_df(training_path[0],
                                       names_dataset,
