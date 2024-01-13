@@ -64,7 +64,7 @@ Finally, the project includes the MultiBERT_train module, which focuses on train
 # Machine Learning Parameters
 - **bert:** Pre-trained BERT model for text processing.
 - **train_path, val_path, test_path:** Paths to training, validation, and test datasets.
-- **training_path, names_dataset, dtype_dataset:** Parameters for loading the training dataset.
+- **names_dataset, dtype_dataset:** Parameters for loading the training,validation and test datasets.
 - **text_cols, categorical_cols, numerical_cols:** Lists specifying text, categorical, and numerical columns.
 - **categorical_encode_type, numerical_transformer_method:** Encoding methods for categorical variables and transformation method for numerical variables.
 - **label_col, label_list:** Column name for labels and list of possible label values.
