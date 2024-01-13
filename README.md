@@ -38,3 +38,36 @@ The next stage involves preprocessing tasks such as dataset merging, splitting, 
 
 Finally, the project includes the MultiBERT_train module, which focuses on training models based on the preprocessed data. This step allows for the development and refinement of models that can provide insights and predictions based on the characteristics of the network and user communities.
 ## Configuration
+# BuildGraph Parameters
+- **DATAPATH:** Path to the folder storing the dataset.
+- **deadline:** A specified deadline for parsing, set to "2021-06-01".
+
+# BuildCom Parameters
+- **NETPATH:** Path to the folder storing network-related data, also where the build_graph module saves the graphs.
+
+# Preprocess Parameters
+- **TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR, NETWORK_DATA:** Paths to different data directories.
+- **path_df:** Path to the CSV file containing the main DataFrame (`df_full`).
+- **name_df, dtype_df:** Column names and data types for the main DataFrame.
+- **path_com:** Path to the CSV file containing community-related data.
+- **dtype_com, names_com:** Data types and column names for community-related data.
+- **path_pos:** Path to the JSON file storing position information.
+- **names_pos:** Names for x and y position columns.
+- **labels:** List of labels required for machine learning.
+- **random_state:** Seed for random state.
+
+# Network Parameters
+- **MAKE:** Boolean indicating whether to recalculate user positions using fa2.
+- **com2col:** List of colors used for drawing communities.
+- **path_to_save, path_to_read:** Paths for saving and reading position information.
+
+# Machine Learning Parameters
+- **bert:** Pre-trained BERT model for text processing.
+- **training_path, names_dataset, dtype_dataset:** Parameters for loading the training dataset.
+- **text_cols, categorical_cols, numerical_cols:** Lists specifying text, categorical, and numerical columns.
+- **categorical_encode_type, numerical_transformer_method:** Encoding methods for categorical variables and transformation method for numerical variables.
+- **label_col, label_list:** Column name for labels and list of possible label values.
+- **dataset_params:** Tuple containing parameters for loading the dataset.
+- **combine_feat_method, cat_feat_dim, numerical_feat_dim:** Configuration parameters for combining features in tabular data.
+- **tab_conf_params:** Tuple containing tabular configuration parameters.
+- **use_cpu, overwrite_output_dir, do_train, do_eval, per_device_train_batch_size, num_train_epochs, logging_steps, eval_steps, weight_decay, auto_find_batch_size, dataloader_drop_last:** Training arguments and parameters, required by MULTIMODALToolkits structure.
