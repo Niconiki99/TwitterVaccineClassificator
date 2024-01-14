@@ -116,67 +116,7 @@ def calc_classification_metrics(p: EvalPrediction)-> dict:
         }
 
     return result
-
-def read_dataset(
-    tokenizer: PreTrainedTokenizer,
-    data_path: str,
-    text_cols: list,
-    categorical_encode_type: str,
-    numerical_transformer_method: str,
-    label_col: str,
-    label_list: list
-) -> tuple:
-    """
-    Reads and preprocesses datasets from a specified data path using the provided configurations.
-
-    Parameters:
-    - tokenizer (PreTrainedTokenizer): The tokenizer used for tokenizing text data.
-    - data_path (str): Path to the dataset folder.
-    - text_cols (list): List of column names containing text data in the dataset.
-    - categorical_encode_type (str): Type of encoding for categorical variables (e.g., 'one-hot', 'label').
-    - numerical_transformer_method (str): Method for transforming numerical variables (e.g., 'standard', 'minmax').
-    - label_col (str): Name of the column containing labels in the dataset.
-    - label_list (list): List of possible label values.
-
-    Returns:
-    - train_dataset (torch.utils.data.dataset): Preprocessed training dataset.
-    - val_dataset (torch.utils.data.dataset): Preprocessed validation dataset.
-    - test_dataset (torch.utils.data.dataset): Preprocessed test dataset.
-
-    Usage Example:
-    ```python
-    from transformers import AutoTokenizer
-
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-    data_path = "path/to/dataset"
-    text_cols = ["text_column"]
-    categorical_encode_type = "one-hot"
-    numerical_transformer_method = "standard"
-    label_col = "label_column"
-    label_list = [0, 1]
-
-    train_dataset, val_dataset, test_dataset = read_dataset(
-        tokenizer,
-        data_path,
-        text_cols,
-        categorical_encode_type,
-        numerical_transformer_method,
-        label_col,
-        label_list,
-    )
-    """
-    train_dataset, val_dataset, test_dataset = load_data_from_folder(
-        data_path,
-        text_cols=text_cols,
-        tokenizer=tokenizer,
-        categorical_encode_type=categorical_encode_type,
-        numerical_transformer_method=numerical_transformer_method,
-        label_col=label_col,
-        label_list=label_list,
-        sep_text_token_str=tokenizer.sep_token,
-    )
-    return train_dataset,val_dataset,test_dataset
-    
+   
 def read_and_convert_df(
     path: str,
     names: List[str],
