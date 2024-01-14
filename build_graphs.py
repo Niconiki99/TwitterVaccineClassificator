@@ -104,7 +104,7 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     return retweets
 
 
-def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=False) -> None:
+def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=False,write:Bool=True) -> tuple:
     """
     Write down the hypergraph.
 
@@ -112,9 +112,10 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     - retweets (pd.DataFrame): DataFrame containing information about retweets, with columns "source", "target", and "hyperlink".
     - deadline (pd.Timestamp): Timestamp representing the deadline for building the hypergraph.
     - savenames (list, optional): List of filenames for saving the hypergraph components. If not provided, default names are used.
+    - write (bool, optional):Define if saving the hypergraph produced or not.
 
     Returns:
-    - None
+    - the product between the tail and the head matrix and the list of users.
 
     This function builds a hypergraph from retweet data and saves its components. The hypergraph is represented by two sparse matrices:
     - The "head" matrix captures connections from retweet targets to hyperlinks.
@@ -125,9 +126,10 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     The function also extracts the largest connected component from the hypergraph, saving the resulting matrices and user information.
 
     """
-    print("Building hyprgraph for", deadline.date())
-    if(not(savenames)):
-        savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
+    if(write):
+        print("Building hyprgraph for", deadline.date())
+        if(not(savenames)):
+            savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
 
     users = set(retweets["source"]) | set(retweets["target"])
     users = {u: i for i, u in enumerate(users)}
@@ -155,11 +157,11 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     users = pd.Series(list(users.keys()), index=list(users.values()))
     users = users[comp_indx].reset_index(drop=True)
     print(users.shape, tail.shape, head.shape)
-
-    sparse.save_npz(NETPATH / savenames[0], head)
-    sparse.save_npz(NETPATH / savenames[1], tail)
-
-    users.to_csv(NETPATH / savenames[2])
+    
+    if write:
+        sparse.save_npz(NETPATH / savenames[0], head)
+        sparse.save_npz(NETPATH / savenames[1], tail)
+        users.to_csv(NETPATH / savenames[2])
 
     return tail @ head.T, users
 
@@ -215,7 +217,10 @@ def load_graph(deadline: pd.Timestamp,path : pathlib.PosixPath,savenames:list=Fa
 
 def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) -> (sparse.csr_matrix, sparse.csr_matrix):
     """
-    Extract the largest connected component from a hypergraph.
+    This function extracts the largest connected component from a hypergraph represented by its tail and head matrices. 
+    It removes users from smaller components and corresponding retweets involving those smaller components.
+
+    The function uses the connected components algorithm to identify the largest component, projects the hypergraph matrices onto the users in the largest component, and removes retweets involving users from smaller components.
 
     Parameters:
     - tail (sparse.csr_matrix): Sparse matrix representing the tail connections in the hypergraph.
@@ -223,12 +228,6 @@ def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) 
 
     Returns:
     - tuple (sparse.csr_matrix, sparse.csr_matrix, np.ndarray): A tuple containing the tail matrix, head matrix, and an array representing user indices in the largest connected component.
-
-    This function extracts the largest connected component from a hypergraph represented by its tail and head matrices. 
-    It removes users from smaller components and corresponding retweets involving those smaller components.
-
-    The function uses the connected components algorithm to identify the largest component, projects the hypergraph matrices onto the users in the largest component, and removes retweets involving users from smaller components.
-
     """
     rtw_net = tail @ head.T
     print("Full adj", rtw_net.shape)
