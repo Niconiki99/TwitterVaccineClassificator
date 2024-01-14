@@ -1,22 +1,13 @@
-"""Introduction:
-
+"""
 This code is designed for analyzing and visualizing communities within a retweet network, and to build a dictionary of positions, which is used as a feature in classification problem.
-
 Position Generation: The script employs the ForceAtlas2 layout algorithm to generate node positions for a given graph. The position_creation function takes a NetworkX graph and produces positions that are then saved in JSON format.
-
 Drawing Parameters: A function (drawing_params) is implemented to compute various parameters for drawing a graph, such as user IDs, node sizes, edges, coordinates, and colors based on community assignments.
-
 Drawing: The script utilizes the generated parameters to draw a network map using Matplotlib. The drawing function creates a scatter plot with customizable features, including node sizes, colors, and background.
-
-Configuration Parameters:
-
-The configuration parameters include flags (MAKE), community mapping (com2col), file paths (path_com, path_to_save, path_to_read), and data types (dtype_com, names_com). These parameters can be adjusted to tailor the analysis to different datasets or requirements.
-
+Configuration Parameters:The configuration parameters include flags (MAKE), community mapping (com2col), file paths (path_com, path_to_save, path_to_read), and data types (dtype_com, names_com). These parameters can be adjusted to tailor the analysis to different datasets or requirements.
 Note:
-
 Ensure that the required libraries are installed before running the script.
 The script assumes the existence of a retweet network graph stored in the specified graphml file (retweet_graph_undirected_2021-06-01.graphml). Adjust the file path if needed.
-Overall, this script provides a flexible and modular tool for community analysis and visualization within retweet networks. """
+ """
 import networkx as nx
 import numpy as np
 import json
