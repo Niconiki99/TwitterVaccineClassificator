@@ -1,5 +1,6 @@
-from DIRS import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA
 import pathlib
+#DIRECTORIES
+from DIRS import TRANSFORMERS_CACHE_DIR,DATA_DIR,LARGE_DATA_DIR,NETWORK_DATA
 #BuildGraph params
 DATAPATH = pathlib.Path(DATA_DIR) #path storing the datas
 deadline="2021-06-01" #deadline selected for the parsing
