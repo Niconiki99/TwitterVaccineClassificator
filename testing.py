@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 from scipy import sparse
 from build_graphs import load_data,compute_graph,write_hypergraph,load_graph
-from build_communities import partition_core
+from build_communities import partition_core,simplify_community_struct
 from DIRS import TEST_PATH
 
 def generating_path():
@@ -21,6 +21,7 @@ def generating_simple_case():
     retweet_simple=pd.DataFrame(dict)
     retweet_simple.set_index("id")
     return retweet_simple
+    
 def generate_simple_adj():
     x=[1,0,3,2,3,0]
     y_=[0,1,2,3,0,3]
@@ -67,3 +68,51 @@ def test_partition_core_simple_case():
     adj,id=generate_simple_adj()
     assert len(partition_core(adj,id,pd.Series([0,1,2,3])).unique())==2
     assert len(partition_core(adj,id,pd.Series([0,1,2,3]),kind="leiden").unique())==2
+
+def test_simplify_community_struct_size_lv():
+    path,deadline=generating_path()
+    tail, head, usermap = load_graph(deadline,path)
+    simplified_com=simplify_community_struct(partition_core(tail,head,usermap),comm_size=50)
+    assert (i<51 for i in simplified_com.value_counts().sort_values(ascending=False))
+
+def test_simplify_community_struct_size_ld():
+    path,deadline=generating_path()
+    tail, head, usermap = load_graph(deadline,path)
+    simplified_com=simplify_community_struct(partition_core(tail,head,usermap,kind="leiden"),comm_size=50)
+    assert (i<51 for i in simplified_com.value_counts().sort_values(ascending=False))
+
+def test_simplify_community_coverage_lv_40():
+    path,deadline=generating_path()
+    tail, head, usermap = load_graph(deadline,path)
+    coms=partition_core(tail,head,usermap)
+    simplified_com=simplify_community_struct(coms,coverage=0.4)
+    counts=coms.value_counts().sort_values(ascending=False)
+    coverage=np.sum(counts.iloc[:len(np.unique(simplified_com.values))-1].values)/len(coms)
+    assert (coverage>0.39)
+
+def test_simplify_community_coverage_ld_40():
+    path,deadline=generating_path()
+    tail, head, usermap = load_graph(deadline,path)
+    coms=partition_core(tail,head,usermap,kind="leiden")
+    simplified_com=simplify_community_struct(coms,coverage=0.4)
+    counts=coms.value_counts().sort_values(ascending=False)
+    coverage=np.sum(counts.iloc[:len(np.unique(simplified_com.values))-1].values)/len(coms)
+    assert (coverage>0.39)
+
+def test_simplify_community_coverage_lv_90():
+    path,deadline=generating_path()
+    tail, head, usermap = load_graph(deadline,path)
+    coms=partition_core(tail,head,usermap)
+    simplified_com=simplify_community_struct(coms,coverage=0.9)
+    counts=coms.value_counts().sort_values(ascending=False)
+    coverage=np.sum(counts.iloc[:len(np.unique(simplified_com.values))-1].values)/len(coms)
+    assert (coverage>0.89)
+
+def test_simplify_community_coverage_ld_90():
+    path,deadline=generating_path()
+    tail, head, usermap = load_graph(deadline,path)
+    coms=partition_core(tail,head,usermap,kind="leiden")
+    simplified_com=simplify_community_struct(coms,coverage=0.9)
+    counts=coms.value_counts().sort_values(ascending=False)
+    coverage=np.sum(counts.iloc[:len(np.unique(simplified_com.values))-1].values)/len(coms)
+    assert (coverage>0.89)
