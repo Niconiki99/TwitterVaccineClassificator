@@ -100,7 +100,6 @@ def pos_reading(path_to_read: str = DATA_DIR + 'position.json') -> Dict:
         positions = json.load(f)
     return positions
 
-def drawing_params(positions,G,com2col,mappa):
 def drawing_params(
     positions: Dict, G: nx.Graph, com2col: Dict, mappa: Dict
 ) -> Tuple[List, np.ndarray, List, List, List, np.ndarray]:
