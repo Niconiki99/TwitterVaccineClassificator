@@ -95,7 +95,7 @@ def test_write_hypergraph_user():
     assert isinstance(users,pd.Series)
 
 def test_write_hypergraph_matrix():
-"""
+    """
     Test function for writing hypergraph.
 
     GIVEN: A graph computed with compute_graph() function.
@@ -110,7 +110,6 @@ def test_write_hypergraph_matrix():
 
 
 def test_write_hypergraph_simple_case():
-    def test_write_hypergraph_simple_case():
     """
     Test function for writing hypergraph with a simple case.
 
