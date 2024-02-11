@@ -168,23 +168,37 @@ def test_simplify_community_struct_size_lv():
     """
     Test function for simplifying community structure by size with Louvain.
 
-    GIVEN: a partitioning core using partition_core() function with louvain a.
+    GIVEN: a partitioning core using partition_core() function with louvain algorithm.
     WHEN:  simplifying community structure using simplify_community_struct() function, fixing the size at 50.
     THEN: the resulting simplified community structure should have communities with sizes less than or equal to 50.
     """
-
     path,deadline=generating_path()
     tail, head, usermap = load_graph(deadline,path)
     simplified_com=simplify_community_struct(partition_core(tail,head,usermap),comm_size=50)
     assert (i<51 for i in simplified_com.value_counts().sort_values(ascending=False))
 
 def test_simplify_community_struct_size_ld():
+    """
+    Test function for simplifying community structure by size with Leiden.
+
+    GIVEN: a partitioning core using partition_core() function with leiden algorithm.
+    WHEN:  simplifying community structure using simplify_community_struct() function, fixing the size at 50.
+    THEN: the resulting simplified community structure should have communities with sizes less than or equal to 50.
+    """
     path,deadline=generating_path()
     tail, head, usermap = load_graph(deadline,path)
     simplified_com=simplify_community_struct(partition_core(tail,head,usermap,kind="leiden"),comm_size=50)
     assert (i<51 for i in simplified_com.value_counts().sort_values(ascending=False))
 
 def test_simplify_community_coverage_lv_40():
+    """
+    Test function for simplifying community structure by coverage with Louvain.
+
+    GIVEN: a partitioning core using partition_core() function with louvain algorithm.
+    WHEN:  simplifying community structure using simplify_community_struct() function, fixing the coverage at 40%.
+    THEN: the resulting simplified community structure should cover at least 40% of the original communities.
+    """
+
     path,deadline=generating_path()
     tail, head, usermap = load_graph(deadline,path)
     coms=partition_core(tail,head,usermap)
@@ -194,6 +208,13 @@ def test_simplify_community_coverage_lv_40():
     assert (coverage>0.39)
 
 def test_simplify_community_coverage_ld_40():
+    """
+    Test function for simplifying community structure by coverage with Leiden.
+
+    GIVEN: a partitioning core using partition_core() function with leiden algorithm.
+    WHEN:  simplifying community structure using simplify_community_struct() function, fixing the coverage at 40%.
+    THEN: the resulting simplified community structure should cover at least 40% of the original communities.
+    """
     path,deadline=generating_path()
     tail, head, usermap = load_graph(deadline,path)
     coms=partition_core(tail,head,usermap,kind="leiden")
@@ -203,6 +224,13 @@ def test_simplify_community_coverage_ld_40():
     assert (coverage>0.39)
 
 def test_simplify_community_coverage_lv_90():
+    """
+    Test function for simplifying community structure by coverage with Louvain.
+
+    GIVEN: a partitioning core using partition_core() function with louvain algorithm.
+    WHEN:  simplifying community structure using simplify_community_struct() function, fixing the coverage at 90%.
+    THEN: the resulting simplified community structure should cover at least 90% of the original communities.
+    """
     path,deadline=generating_path()
     tail, head, usermap = load_graph(deadline,path)
     coms=partition_core(tail,head,usermap)
@@ -212,6 +240,13 @@ def test_simplify_community_coverage_lv_90():
     assert (coverage>0.89)
 
 def test_simplify_community_coverage_ld_90():
+    """
+    Test function for simplifying community structure by coverage with Leiden.
+
+    GIVEN: a partitioning core using partition_core() function with leiden algorithm.
+    WHEN:  simplifying community structure using simplify_community_struct() function, fixing the coverage at 90%.
+    THEN: the resulting simplified community structure should cover at least 90% of the original communities.
+    """
     path,deadline=generating_path()
     tail, head, usermap = load_graph(deadline,path)
     coms=partition_core(tail,head,usermap,kind="leiden")
