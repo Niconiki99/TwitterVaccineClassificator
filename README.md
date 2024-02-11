@@ -38,7 +38,6 @@ The network.py module is responsible for computing the positions of user IDs wit
 The next stage involves preprocessing tasks such as dataset merging, splitting, and other preparatory steps. The Preprocessing module manages this crucial phase, ensuring that the data is appropriately formatted and ready for subsequent analyses. This module couples all the features produced by the previous modules with the raw tweets.
 
 Finally, the project includes the MultiBERT_train module, which focuses on training models based on the preprocessed data. This step allows for the development and refinement of models that can provide insights and predictions based on the characteristics of the network and user communities.
-## Configuration
 # BuildGraph Parameters
 - **DATAPATH:** Path to the folder storing the dataset.
 - **deadline:** A specified deadline for parsing, set to "2021-06-01".
