@@ -6,12 +6,24 @@ from build_graphs import load_data,compute_graph,write_hypergraph,load_graph
 from build_communities import partition_core,simplify_community_struct
 from DIRS import TEST_PATH
 
-def generating_path():
+def generating_path() -> (str, pd.Timestamp):
+    """
+    Function to generate a path and a deadline timestamp.
+
+    Returns:
+        Tuple[str, pd.Timestamp]: A tuple containing the path (str) and the deadline (pd.Timestamp).
+    """
     path=TEST_PATH
     deadline=pd.Timestamp("2021-06-01" + "T00:00:00+02")
-    return path,deadline,
+    return path,deadline
 
-def generating_simple_case():
+def generating_simple_case() -> pd.DataFrame:
+    """
+    Function to generate a simple test dataset for connected component analysis.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the generated dataset.
+    """
     #BUILDING AN EXAMPLE DATASET TO TEST THE CONNECTED COMPONENT ANALYSIS
     id=["0","1","2","3"]
     hyperlink=["0","1","2","3"]
@@ -22,7 +34,13 @@ def generating_simple_case():
     retweet_simple.set_index("id")
     return retweet_simple
     
-def generate_simple_adj():
+def generate_simple_adj() -> (sparse.coo_matrix, sparse.coo_matrix):
+    """
+    Function to generate a simple adjacency matrix and an identity matrix.
+
+    Returns:
+        Tuple[sparse.coo_matrix, sparse.coo_matrix]: A tuple containing the adjacency matrix and the identity matrix.
+    """
     x=[1,0,3,2,3,0]
     y_=[0,1,2,3,0,3]
     y=[0,1,2,3]
