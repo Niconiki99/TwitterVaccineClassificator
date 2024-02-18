@@ -26,7 +26,7 @@ It utilizes natural language processing (NLP) techniques and machine learning to
     ```
 
 2. Install dependencies:
-Verify the dependencies on requirements.txt and install what is missing.
+Verify the dependencies on requirements and install what is missing.
 
 ## Usage
 The project is made up of several modular components, each designed to perform specific analyses independently. To conduct a comprehensive analysis, it is recommended to start with the build_graphs module. This step begins with raw tweets and selects only those that fall within a specific deadline. The module then constructs the graph, laying the foundation for subsequent analyses.
