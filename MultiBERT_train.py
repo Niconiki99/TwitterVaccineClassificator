@@ -7,7 +7,6 @@ scipy.special: Additional functions for mathematical operations (used for softma
 sklearn.metrics: Metrics for evaluating classification models (e.g., ROC AUC, precision-recall curve, confusion matrix).
 re, os: Regular expressions and operating system interfaces.
 pandas: Data manipulation and analysis library.
-seaborn: Data visualization library based on Matplotlib.
 tqdm.auto: A fast, extensible progress bar for loops and CLI.
 torch: PyTorch library for deep learning.
 transformers: Hugging Face's Transformers library for natural language processing (NLP) tasks.
@@ -25,7 +24,6 @@ from sklearn.metrics import (
 )
 import re,os
 import pandas as pd
-import seaborn as sns
 from tqdm.auto import tqdm
 import torch
 import torch.nn.functional as Functional
@@ -38,16 +36,8 @@ from multimodal_transformers.model import TabularConfig
 from multimodal_transformers.data import load_data_from_folder, load_data
 from sklearn.metrics import  accuracy_score, precision_score, recall_score, confusion_matrix
 from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR
-import numpy as np
-from scipy.special import softmax
-from sklearn.metrics import (
-    auc,
-    precision_recall_curve,
-    roc_auc_score,
-    f1_score,
-    confusion_matrix,
-    matthews_corrcoef,
-)
+
+
 
 
 def calc_classification_metrics(p: EvalPrediction)-> dict:
