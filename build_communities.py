@@ -19,7 +19,6 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import sknetwork
-import tqdm
 from scipy import sparse
 
 from build_graphs import NETPATH, load_graph
