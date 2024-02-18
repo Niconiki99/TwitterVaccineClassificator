@@ -13,11 +13,9 @@ import numpy as np
 import json
 import time
 import matplotlib.pyplot as plt
-import seaborn as sns
 import re,os
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR, NETWORK_DATA
 from fa2 import ForceAtlas2
 
