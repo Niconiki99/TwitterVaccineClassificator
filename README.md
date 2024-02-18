@@ -75,21 +75,21 @@ Finally, the project includes the MultiBERT_train module, which focuses on train
 
 ## Requirements: 
 The code is built on python 3.9 and is based on some fundamental packages:
--numpy
--pandas
--networkx
--scipy
--pathlib
--collections
--igraph
--sknetwork
--sklearn
--re
--os
--torch
--transformers
--multimodal toolkit (https://github.com/georgian-io/Multimodal-Toolkit.git)
--json
--matplotlib
--time
--forceatlas2 (https://github.com/AminAlam/forceatlas2.git)
+- **numpy**
+- **pandas**
+- **networkx**
+- **scipy**
+- **pathlib**
+- **collections**
+- **igraph**
+- **sknetwork**
+- **sklearn**
+- **re**
+- **os**
+- **torch**
+- **transformers**
+- **multimodal toolkit (https://github.com/georgian-io/Multimodal-Toolkit.git)**
+- **json**
+- **matplotlib**
+- **time**
+- **forceatlas2 (https://github.com/AminAlam/forceatlas2.git)**
