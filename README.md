@@ -33,7 +33,7 @@ The project is made up of several modular components, each designed to perform s
 
 After graph construction, the build_communities module is used to examine the community structures within the graph. This step is critical in understanding the network's intrinsic groupings and relationships. Different algorithms can be used to build the communities.
 
-The network.py module is responsible for computing the positions of user IDs within the graph. It also produces a visual representation of the network, assigning distinct colors to each community. This visualization helps in interpreting the network's structural dynamics and identifying the relationships between different user communities. Together with the information of the communities, the positions are the key features to couple with the embeddings performed by BERT to classify the tweets.
+The network.py module is responsible for computing the positions of user IDs within the graph. It also produces a visual representation of the network, assigning distinct colours to each community. This visualization helps interpret the network's structural dynamics and identify the relationships between different user communities. Together with the information of the communities, the positions are the key features to couple with the embeddings performed by BERT to classify the tweets.
 
 The next stage involves preprocessing tasks such as dataset merging, splitting, and other preparatory steps. The Preprocessing module manages this crucial phase, ensuring that the data is appropriately formatted and ready for subsequent analyses. This module couples all the features produced by the previous modules with the raw tweets.
 
@@ -48,7 +48,7 @@ Finally, the project includes the MultiBERT_train module, which focuses on train
 # Preprocess Parameters
 - **TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR, NETWORK_DATA:** Paths to different data directories.
 - **path_df:** Path to the CSV file containing the main DataFrame (`df_full`).
-- **name_df, dtype_df:** Column names and data types for the main DataFrame.
+- **name_df, dtype_df:** Column names and data types for the main data frame.
 - **path_com:** Path to the CSV file containing community-related data.
 - **dtype_com, names_com:** Data types and column names for community-related data.
 - **path_pos:** Path to the JSON file storing position information.
@@ -58,13 +58,13 @@ Finally, the project includes the MultiBERT_train module, which focuses on train
 
 # Network Parameters
 - **MAKE:** Boolean indicating whether to recalculate user positions using fa2.
-- **com2col:** List of colors used for drawing communities.
+- **com2col:** List of colours used for drawing communities.
 - **path_to_save, path_to_read:** Paths for saving and reading position information.
 
 # Machine Learning Parameters
 - **bert:** Pre-trained BERT model for text processing.
 - **train_path, val_path, test_path:** Paths to training, validation, and test datasets.
-- **names_dataset, dtype_dataset:** Parameters for loading the training,validation and test datasets.
+- **names_dataset, dtype_dataset:** Parameters for loading the training, validation and test datasets.
 - **text_cols, categorical_cols, numerical_cols:** Lists specifying text, categorical, and numerical columns.
 - **categorical_encode_type, numerical_transformer_method:** Encoding methods for categorical variables and transformation method for numerical variables.
 - **label_col, label_list:** Column name for labels and list of possible label values.
@@ -72,3 +72,24 @@ Finally, the project includes the MultiBERT_train module, which focuses on train
 - **combine_feat_method, cat_feat_dim, numerical_feat_dim:** Configuration parameters for combining features in tabular data.
 - **tab_conf_params:** Tuple containing tabular configuration parameters.
 - **use_cpu, overwrite_output_dir, do_train, do_eval, per_device_train_batch_size, num_train_epochs, logging_steps, eval_steps, weight_decay, auto_find_batch_size, dataloader_drop_last:** Training arguments and parameters, required by MULTIMODALToolkits structure.
+
+## Requirements: 
+The code is built on python 3.9 and is based on some fundamental packages:
+-numpy
+-pandas
+-networkx
+-scipy
+-pathlib
+-collections
+-igraph
+-sknetwork
+-sklearn
+-re
+-os
+-torch
+-transformers
+-multimodal toolkit (https://github.com/georgian-io/Multimodal-Toolkit.git)
+-json
+-matplotlib
+-time
+-forceatlas2 (https://github.com/AminAlam/forceatlas2.git)
