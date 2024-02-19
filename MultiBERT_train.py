@@ -41,7 +41,7 @@ from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DI
 
 
 def calc_classification_metrics(p: EvalPrediction)-> dict:
-"""
+    """
     Calculate various classification metrics based on the evaluation predictions.
 
     Parameters:
@@ -109,30 +109,30 @@ def calc_classification_metrics(p: EvalPrediction)-> dict:
    
 def read_and_convert_df(
     path: str,
-    names: List[str],
+    names: list[str],
     dtype: dict,
-    text_cols: List[str],
-    tokenizer: PreTrainedTokenizer,
-    categorical_cols: List[str],
-    numerical_cols: List[str],
+    text_cols: list[str],
+    tokenizer: AutoTokenizer,
+    categorical_cols: list[str],
+    numerical_cols: list[str],
     categorical_encode_type: str,
     label_col: str,
-    label_list: List[int]
+    label_list: list[int]
 ) -> torch.utils.data.dataset:
     """
     Reads a CSV file into a DataFrame, preprocesses it, and converts it into a dataset suitable for training.
 
     Parameters:
     - path (str): Path to the CSV file.
-    - names (List[str]): List of column names for the CSV file.
+    - names (list[str]): List of column names for the CSV file.
     - dtype (dict): Dictionary specifying the data types for columns in the DataFrame.
-    - text_cols (List[str]): List of column names containing text data in the dataset.
-    - tokenizer (PreTrainedTokenizer): The tokenizer used for tokenizing text data.
-    - categorical_cols (List[str]): List of column names containing categorical variables in the dataset.
-    - numerical_cols (List[str]): List of column names containing numerical variables in the dataset.
+    - text_cols (list[str]): List of column names containing text data in the dataset.
+    - tokenizer (AutoTokenizer): The tokenizer used for tokenizing text data.
+    - categorical_cols (list[str]): List of column names containing categorical variables in the dataset.
+    - numerical_cols (list[str]): List of column names containing numerical variables in the dataset.
     - categorical_encode_type (str): Type of encoding for categorical variables (e.g., 'one-hot', 'label').
     - label_col (str): Name of the column containing labels in the dataset.
-    - label_list (List[int]): List of possible label values.
+    - label_list (list[int]): List of possible label values.
 
     Returns:
     - dataset (torch.utils.data.dataset): A dataset consistent with pytorch requirements
@@ -238,7 +238,7 @@ def set_tab_config(
     )
     return tabular_config
 
-def set_training_argsdef set_training_args(
+def set_training_args(
     overwrite_output_dir: bool,
     do_train: bool,
     do_eval: bool,
