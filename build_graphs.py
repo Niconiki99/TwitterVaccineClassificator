@@ -90,7 +90,7 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     - Hyperlinks are assigned numerical indices starting from 0.
     - The function prints the number of retweets before returning the resulting DataFrame.
     """
-    retweets = df_full.dropna(subset="retweeted_status.id")[
+    retweets = df_full.dropna(subset=["retweeted_status.id"])[
         ["user.id", "retweeted_status.id", "retweeted_status.user.id"]
     ]
 
