@@ -29,15 +29,15 @@ It utilizes natural language processing (NLP) techniques and machine learning to
 Verify the dependencies on requirements and install what is missing.
 
 ## Usage
-The project is made up of several modular components, each designed to perform specific analyses independently. To conduct a comprehensive analysis, it is recommended to start with the build_graphs module. This step begins with raw tweets and selects only those that fall within a specific deadline. The module then constructs the graph, laying the foundation for subsequent analyses.
+The project is made up of several modular components, each designed to perform specific analyses independently. To conduct a comprehensive analysis, it is recommended to start with the [build_graphs](https://github.com/Niconiki99/TwitterVaccineClassificator/blob/main/build_graphs.py) module. This step begins with raw tweets and selects only those that fall within a specific deadline. The module then constructs the graph, laying the foundation for subsequent analyses.
 
-After graph construction, the build_communities module is used to examine the community structures within the graph. This step is critical in understanding the network's intrinsic groupings and relationships. Different algorithms can be used to build the communities.
+After graph construction, the [build_communities](https://github.com/Niconiki99/TwitterVaccineClassificator/blob/main/build_communities.py) module is used to examine the community structures within the graph. This step is critical in understanding the network's intrinsic groupings and relationships. Different algorithms can be used to build the communities.
 
-The network.py module is responsible for computing the positions of user IDs within the graph. It also produces a visual representation of the network, assigning distinct colours to each community. This visualization helps interpret the network's structural dynamics and identify the relationships between different user communities. Together with the information of the communities, the positions are the key features to couple with the embeddings performed by BERT to classify the tweets.
+The [network.py](https://github.com/Niconiki99/TwitterVaccineClassificator/blob/main/network.py) module is responsible for computing the positions of user IDs within the graph. It also produces a visual representation of the network, assigning distinct colours to each community. This visualization helps interpret the network's structural dynamics and identify the relationships between different user communities. Together with the information of the communities, the positions are the key features to couple with the embeddings performed by BERT to classify the tweets.
 
-The next stage involves preprocessing tasks such as dataset merging, splitting, and other preparatory steps. The Preprocessing module manages this crucial phase, ensuring that the data is appropriately formatted and ready for subsequent analyses. This module couples all the features produced by the previous modules with the raw tweets.
+The next stage involves preprocessing tasks such as dataset merging, splitting, and other preparatory steps. The [Preprocessing](https://github.com/Niconiki99/TwitterVaccineClassificator/blob/main/Preprocessing.py) module manages this crucial phase, ensuring that the data is appropriately formatted and ready for subsequent analyses. This module couples all the features produced by the previous modules with the raw tweets.
 
-Finally, the project includes the MultiBERT_train module, which focuses on training models based on the preprocessed data. This step allows for the development and refinement of models that can provide insights and predictions based on the characteristics of the network and user communities.
+Finally, the project includes the [MultiBERT_train](https://github.com/Niconiki99/TwitterVaccineClassificator/blob/main/MultiBERT_train.py) module, which focuses on training models based on the preprocessed data. This step allows for the development and refinement of models that can provide insights and predictions based on the characteristics of the network and user communities.
 # BuildGraph Parameters
 - **DATAPATH:** Path to the folder storing the dataset.
 - **deadline:** A specified deadline for parsing, set to "2021-06-01".
@@ -88,8 +88,8 @@ The code is built on python 3.9 and is based on some fundamental packages:
 - **os**
 - **torch**
 - **transformers**
-- **multimodal toolkit (https://github.com/georgian-io/Multimodal-Toolkit.git)**
+- **[multimodal toolkit](https://github.com/georgian-io/Multimodal-Toolkit.git)**
 - **json**
 - **matplotlib**
 - **time**
-- **forceatlas2 (https://github.com/AminAlam/forceatlas2.git)**
+- **[forceatlas2](https://github.com/AminAlam/forceatlas2.git)**
