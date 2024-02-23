@@ -137,33 +137,7 @@ def read_and_convert_df(
     Returns:
     - dataset (torch.utils.data.dataset): A dataset consistent with pytorch requirements
 
-    Usage Example:
-    ```python
-    from transformers import AutoTokenizer
 
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-    path = "path/to/dataset.csv"
-    names = ["id", "leiden_90", "louvain_90", "text_col", "label_col"]
-    dtype = {"id": int, "leiden_90": int, "louvain_90": int, "text_col": str, "label_col": int}
-    text_cols = ["text_col"]
-    categorical_cols = ["leiden_90", "louvain_90"]
-    numerical_cols = []
-    categorical_encode_type = "label"
-    label_col = "label_col"
-    label_list = [0, 1]
-
-    dataset = read_and_convert_df(
-        path,
-        names,
-        dtype,
-        text_cols,
-        tokenizer,
-        categorical_cols,
-        numerical_cols,
-        categorical_encode_type,
-        label_col,
-        label_list,
-    )
     """
     df= pd.read_csv(
         path,
