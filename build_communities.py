@@ -21,7 +21,7 @@ import pandas as pd
 import sknetwork
 from scipy import sparse
 
-from build_graphs import NETPATH, load_graph
+from build_graphs import NETPATH, load_graph , parse_date
 from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA,DATAPATH
 
 
@@ -202,9 +202,9 @@ def simplify_community_struct(
         keep = counts[counts > comm_size].index
     elif coverage > 0.0:
         # keep larger communities that cover at least coverage ratio of the network
-        keep = counts.cumsum() / len(community)
+        keep = pd.Index(counts.cumsum() / len(community))
         keep_num = len(keep[keep <= coverage]) + 1
-        keep = keep.iloc[:keep_num].index
+        keep = pd.Series(keep).iloc[:keep_num].index
 
     new_parts = {v: i for i, v in enumerate(keep)}
     return community.map(lambda x: new_parts.get(x, len(new_parts)))
@@ -231,7 +231,7 @@ def main(deadline: str) -> None:
     """Do the main."""
     DATAPATH.mkdir(parents=True, exist_ok=True)
     path=NETPATH
-    tail, head, usermap = load_graph(deadline,path)
+    tail, head, usermap = load_graph(parse_date(deadline),path)
     adj = tail @ head.T
     p = pd.DataFrame()
 
