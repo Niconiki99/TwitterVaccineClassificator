@@ -19,18 +19,18 @@ import matplotlib.pyplot as plt
 from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR, NETWORK_DATA
 from fa2 import ForceAtlas2
 
-def load_com(path_com: str, names_com: list, dtype_com: Dict) -> Tuple[pd.Series, pd.Series]:
+def load_com(path_com: str, names_com: list, dtype_com: dict) -> tuple[pd.Series, pd.Series]:
     """
     Load community data from a CSV file and extract specific community assignments.
     It extracts the leiden_90 and louvain_90 communities, which means the 90% coverage reduced communities.
 
     Parameters:
     - path_com (str): Path to the CSV file containing community data.
-    - names_com (list): List of column names in the community data.
-    - dtype_com (Dict): Dictionary specifying data types for each column.
+    - names_com (list): list of column names in the community data.
+    - dtype_com (dict): Dictionary specifying data types for each column.
 
     Returns:
-    - Tuple[pd.Series, pd.Series]: Tuple containing community assignments (leiden, louvain).
+    - tuple[pd.Series, pd.Series]: tuple containing community assignments (leiden, louvain).
     """
     df_com = pd.read_csv(
         path_com,
@@ -44,7 +44,7 @@ def load_com(path_com: str, names_com: list, dtype_com: Dict) -> Tuple[pd.Series
     louvain=dict["louvain_90"]
     return(leiden,louvain)
 
-def position_creation(G: nx.Graph, path_to_save: str = DATA_DIR + 'position.json') -> Dict:
+def position_creation(G: nx.Graph, path_to_save: str = DATA_DIR + 'position.json') -> dict:
     """
     Generate and save node positions using ForceAtlas2 layout for a given graph.
 
@@ -53,7 +53,7 @@ def position_creation(G: nx.Graph, path_to_save: str = DATA_DIR + 'position.json
     - path_to_save (str): Path to save the generated positions in JSON format (default is DATA_DIR + 'position.json').
 
     Returns:
-    - Dict: Dictionary containing node positions.
+    - dict: Dictionary containing node positions.
 
     Notes:
     - The function uses the ForceAtlas2 layout algorithm to generate node positions for the given graph.
@@ -84,7 +84,7 @@ def position_creation(G: nx.Graph, path_to_save: str = DATA_DIR + 'position.json
         convert_file.write(json.dumps(positions))
     return positions
 
-def pos_reading(path_to_read: str = DATA_DIR + 'position.json') -> Dict:
+def pos_reading(path_to_read: str = DATA_DIR + 'position.json') -> dict:
     """
     Read node positions from a JSON file.
 
@@ -92,15 +92,15 @@ def pos_reading(path_to_read: str = DATA_DIR + 'position.json') -> Dict:
     - path_to_read (str): Path to the JSON file containing node positions (default is DATA_DIR + 'position.json').
 
     Returns:
-    - Dict: Dictionary containing node positions.
+    - dict: Dictionary containing node positions.
     """
     with open(DATA_DIR+'position.json') as f: 
         positions = json.load(f)
     return positions
 
 def drawing_params(
-    positions: Dict, G: nx.Graph, com2col: Dict, mappa: Dict
-) -> Tuple[List, np.ndarray, List, List, List, np.ndarray]:
+    positions: dict, G: nx.Graph, com2col: dict | list, mappa: pd.Series
+) -> tuple[list, np.ndarray, list, list, list, np.ndarray]:
     """
     Generate parameters for drawing a graph.
     Lists the users to be plotted.
@@ -109,18 +109,18 @@ def drawing_params(
     Couple each point with a color, depending on the community.
 
     Parameters:
-    - positions (Dict): Dictionary containing node positions.
+    - positions (dict): Dictionary containing node positions.
     - G (nx.Graph): NetworkX graph object.
-    - com2col (Dict): Dictionary mapping community IDs to colors.
-    - mappa (Dict): Dictionary mapping node IDs to community IDs.
+    - com2col (dict): Dictionary mapping community IDs to colors.
+    - mappa (dict): Dictionary mapping node IDs to community IDs.
 
     Returns:
-    - Tuple[List, np.ndarray, List, List, List, np.ndarray]:
-        - List: List of users IDs to be plotted.
+    - tuple[list, np.ndarray, list, list, list, np.ndarray]:
+        - list: list of users IDs to be plotted.
         - np.ndarray: Array of node sizes based on degree.
-        - List: List of edges in the network.
-        - List: List of x-coordinates for nodes.
-        - List: List of y-coordinates for nodes.
+        - list: list of edges in the network.
+        - list: list of x-coordinates for nodes.
+        - list: list of y-coordinates for nodes.
         - np.ndarray: Array of colors for nodes.
     """
     utoplot=list(positions.keys())
@@ -139,7 +139,7 @@ def drawing_params(
     return (utoplot,sizes,com_edges,xfa,yfa,colors)
     
 def drawing(
-    drawing_params: Tuple[List, np.ndarray, List, List, List, np.ndarray],
+    drawing_params: tuple[list, np.ndarray, list, list, list, np.ndarray],
     path_to_draw: str = DATA_DIR + "network_map.pdf"
 ) -> None:
     """
@@ -147,13 +147,13 @@ def drawing(
     The map is drawn as a scatter plot.
 
     Parameters:
-    - drawing_params (Tuple[List, np.ndarray, List, List, List, np.ndarray]):
-        Tuple containing parameters for drawing a graph:
-            - List: List of users IDs to be plotted.
+    - drawing_params (tuple[list, np.ndarray, list, list, list, np.ndarray]):
+        tuple containing parameters for drawing a graph:
+            - list: list of users IDs to be plotted.
             - np.ndarray: Array of node sizes based on degree.
-            - List: List of edges in the network.
-            - List: List of x-coordinates for nodes.
-            - List: List of y-coordinates for nodes.
+            - list: list of edges in the network.
+            - list: list of x-coordinates for nodes.
+            - list: list of y-coordinates for nodes.
             - np.ndarray: Array of colors for nodes.
     - path_to_draw (str): Filepath to save the network map (default is DATA_DIR + "network_map.pdf").
 
@@ -163,7 +163,7 @@ def drawing(
     utoplot,sizes,com_edges,xfa,yfa,colors=drawing_params
     s_t=time.time()
     f=plt.figure(dpi=500,figsize=(12,12))
-    plt.scatter(xfa,yfa,c=colors,s=sizes,alpha=.6,
+    plt.scatter(xfa,yfa,c=tuple(colors),s=sizes,alpha=.6,
                 marker='.',edgecolors='black',linewidths=0)
     plt.axis('off')
     plt.gca().set_facecolor('black')
@@ -175,10 +175,10 @@ def drawing(
     
 def main(
     MAKE: bool,
-    com2col: Dict,
+    com2col: list,
     path_com: str,
-    dtype_com: Dict,
-    names_com: List,
+    dtype_com: dict,
+    names_com: list,
     path_to_save: str = DATA_DIR + 'position.json',
     path_to_read: str = DATA_DIR + 'position.json'
 ) -> None:
@@ -187,10 +187,10 @@ def main(
 
     Parameters:
     - MAKE (bool): Boolean flag indicating whether to create new network positions (True) or use existing ones (False).
-    - com2col (Dict): Dictionary mapping community IDs to colors.
+    - com2col (dict): Dictionary mapping community IDs to colors.
     - path_com (str): Filepath to the community information file.
-    - dtype_com (Dict): Dictionary specifying data types for community information.
-    - names_com (List): List of column names for community information.
+    - dtype_com (dict): Dictionary specifying data types for community information.
+    - names_com (list): list of column names for community information.
     - path_to_save (str): Filepath to save the network positions (default is DATA_DIR + 'position.json').
     - path_to_read (str): Filepath to read existing network positions (default is DATA_DIR + 'position.json').
 
