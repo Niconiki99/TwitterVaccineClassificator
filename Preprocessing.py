@@ -18,13 +18,13 @@ import json
 from sklearn.model_selection import train_test_split
 from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,labels,random_state
 
-def undersampling(df: pd.DataFrame, random_state: int) -> pd.DataFrame:
+def undersampling(df: pd.DataFrame, random_state=None: int|None) -> pd.DataFrame:
     """
     Perform undersampling on a DataFrame to balance label classes.
 
     Parameters:
     - df (pd.DataFrame): The input DataFrame containing a 'label' column.
-    - random_state (int): Seed for reproducibility in random sampling.
+    - random_state (int|None): Seed for reproducibility in random sampling, if no seed is passed then completly randomic process is performed.
 
     Returns:
     - pd.DataFrame: Undersampled DataFrame with balanced label classes.
