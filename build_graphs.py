@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 from scipy import sparse
 from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA,NETPATH
-
+NETPATH.mkdir(parents=True, exist_ok=True)
 
 
 def load_data(deadline: str,path: str) -> pd.DataFrame:
@@ -104,7 +104,7 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     return retweets
 
 
-def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=False,write:Bool=True) -> tuple:
+def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=False,write:bool=True) -> tuple:
     """
     Write down the hypergraph.
 
@@ -288,7 +288,6 @@ def parse_date(date: str | pd.Timestamp) -> pd.Timestamp | str:
 
 
 def main(deadline: pd.Timestamp) -> None:
-    NETPATH.mkdir(parents=True, exist_ok=True)
     """Do the main."""
     print("============")
     print(parse_date(deadline))
