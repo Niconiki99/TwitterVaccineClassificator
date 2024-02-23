@@ -23,7 +23,6 @@ from scipy import sparse
 
 from build_graphs import NETPATH, load_graph
 from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA,DATAPATH
-DATAPATH.mkdir(parents=True, exist_ok=True)
 
 
 def partition_core(
@@ -230,6 +229,7 @@ def sparse2igraph(adjacency: sparse.spmatrix, **kwargs: dict) -> igraph.Graph:
 
 def main(deadline: str) -> None:
     """Do the main."""
+    DATAPATH.mkdir(parents=True, exist_ok=True)
     path=NETPATH
     tail, head, usermap = load_graph(deadline,path)
     adj = tail @ head.T
