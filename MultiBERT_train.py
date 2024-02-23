@@ -39,7 +39,6 @@ from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DI
 
 
 
-
 def calc_classification_metrics(p: EvalPrediction)-> dict:
     """
     Calculate various classification metrics based on the evaluation predictions.
@@ -118,7 +117,7 @@ def read_and_convert_df(
     categorical_encode_type: str,
     label_col: str,
     label_list: list[int]
-) -> torch.utils.data.dataset:
+):
     """
     Reads a CSV file into a DataFrame, preprocesses it, and converts it into a dataset suitable for training.
 
