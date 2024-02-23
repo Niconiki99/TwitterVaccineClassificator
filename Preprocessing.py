@@ -126,7 +126,7 @@ def preproc(df: pd.DataFrame,
     df_anno=undersampling(df_anno,seed)
     ids=df_anno.index.to_numpy()
     if(len(label)==2):
-        label2id = {label[0]:0, label[1]:np.nan, label[2]:1}
+        label2id = {label[0]:0, label[1]:int(np.nan), label[2]:1}
     df_anno["label"]=df_anno["label"].map(label2id).dropna()
     df_anno["label"]=df_anno["label"].apply(int)
     return (df_anno,ids)
