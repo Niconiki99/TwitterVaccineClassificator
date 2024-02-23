@@ -106,7 +106,13 @@ def preproc(df: pd.DataFrame,
     - tuple[pd.DataFrame, np.ndarray]: tuple containing the preprocessed DataFrame and corresponding indices.
     """
     df_anno=df[df['annotation'].notna()]
-    df_anno.loc[:,'text']=df_anno['text'].apply(lambda x: x.replace('\n',' ').replace('\t','').replace("\r\n"," ").replace('\u0085'," ").replace('\u2028'," ").replace('\u2029'," "))
+    #Removing characters which can create problems
+    df_anno.loc[:,'text']=df_anno['text'].apply(lambda x: x.replace('\n',' ') #Unix newline character
+                                                .replace('\t','') #Tab character
+                                                .replace("\r\n"," ") #Windows newline character
+                                                .replace('\u0085'," ") #Unicode nextline character
+                                                .replace('\u2028'," ") #Unicone line separator character
+                                                .replace('\u2029'," ")) #Unicode paragraph separator character
     df_anno=df_anno[['text','annotation',"leiden_90","louvain_90","x_pos","y_pos"]].rename(columns=
                                                                                                {'text':'sentence',
                                                                                                 'annotation':'label',
