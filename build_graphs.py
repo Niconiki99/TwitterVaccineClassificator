@@ -29,12 +29,12 @@ from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DI
 NETPATH.mkdir(parents=True, exist_ok=True)
 
 
-def load_data(deadline: str,path: str) -> pd.DataFrame:
+def load_data(deadline: pd.Timestamp,path: str) -> pd.DataFrame:
     """
     Load the full dataset and filter rows based on a given deadline.
 
     Parameters:
-    - deadline (str): The deadline timestamp to filter the dataset.
+    - deadline (pd.Timestamp): The deadline timestamp to filter the dataset.
     - path (str): The file path to the CSV dataset.
 
     Returns:
@@ -95,7 +95,7 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     ]
 
     # use meaningful headers
-    retweets.columns = ["source", "hyperlink", "target"]
+    retweets.columns = pd.Index(["source", "hyperlink", "target"])
 
     # I want hyperlinks counted from 0, 1... as this will become the column index.
     hyperlinks = {k: i for i, k in enumerate(retweets["hyperlink"].unique())}
@@ -104,13 +104,13 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     return retweets
 
 
-def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=False,write:bool=True) -> tuple:
+def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=[False],write:bool=True) -> tuple:
     """
     Write down the hypergraph.
 
     Parameters:
     - retweets (pd.DataFrame): DataFrame containing information about retweets, with columns "source", "target", and "hyperlink".
-    - deadline (pd.Timestamp): Timestamp representing the deadline for building the hypergraph.
+    - deadline (pd.Timestamping): Timestamp representing the deadline for building the hypergraph.
     - savenames (list, optional): List of filenames for saving the hypergraph components. If not provided, default names are used.
     - write (bool, optional):Define if saving the hypergraph produced or not.
 
@@ -128,25 +128,25 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     """
     if(write):
         print("Building hyprgraph for", deadline.date())
-        if(not(savenames)):
+        if(not(savenames[0])):
             savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
 
-    users = set(retweets["source"]) | set(retweets["target"])
-    users = {u: i for i, u in enumerate(users)}
+    users_set = set(retweets["source"]) | set(retweets["target"])
+    users_dict = {u: i for i, u in enumerate(users_set)}
 
     hg_links = retweets["hyperlink"]
-    hg_source = retweets["source"].map(lambda x: users[x])
-    hg_target = retweets["target"].map(lambda x: users[x])
+    hg_source = retweets["source"].map(lambda x: users_dict[x])
+    hg_target = retweets["target"].map(lambda x: users_dict[x])
 
     tail = sparse.coo_matrix(
         (np.ones(len(retweets)), (hg_source, hg_links)),
-        shape=(len(users), len(retweets)),
+        shape=(len(users_dict), len(retweets)),
         dtype=int,
     ).tocsr()
     print("Tail", tail.shape)
     head = sparse.coo_matrix(
         (np.ones(len(retweets)), (hg_target, hg_links)),
-        shape=(len(users), len(retweets)),
+        shape=(len(users_dict), len(retweets)),
         dtype=int,
     ).tocsr()
     print("Head", head.shape)
@@ -154,7 +154,7 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     # only get the largest component
     tail, head, comp_indx = extract_largest_component(tail, head)
 
-    users = pd.Series(list(users.keys()), index=list(users.values()))
+    users = pd.Series(list(users_dict.keys()), index=list(users_dict.values()))
     users = users[comp_indx].reset_index(drop=True)
     print(users.shape, tail.shape, head.shape)
     
@@ -166,12 +166,12 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     return tail @ head.T, users
 
 
-def load_graph(deadline: pd.Timestamp,path : pathlib.PosixPath,savenames:list=False) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
+def load_graph(deadline: pd.Timestamp ,path : pathlib.PosixPath,savenames:list=[False]) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
     """
     Load head, tail, and usermap matrices representing a hypergraph.
 
     Parameters:
-    - deadline (pd.Timestamp): Timestamp representing the deadline for which to load the hypergraph.
+    - deadline (pd.Timestamp or str): Timestamp representing the deadline for which to load the hypergraph.
     - path (pathlib.PosixPath): Path to the directory containing the hypergraph components.
     - savenames (list, optional): List of filenames for loading the hypergraph components. If not provided, default names are used.
 
@@ -188,7 +188,7 @@ def load_graph(deadline: pd.Timestamp,path : pathlib.PosixPath,savenames:list=Fa
     head_matrix, tail_matrix, users_series = load_graph(deadline, path_to_hypergraph)
     ```
     """
-    if(not(savenames)):
+    if(not(savenames[0])):
         try:
             savenames=[f"hyprgraph_{deadline.date()}_head.npz",f"hyprgraph_{deadline.date()}_tail.npz",f"hyprgraph_{deadline.date()}_usermap.csv.gz"]
         except AttributeError:
@@ -202,10 +202,10 @@ def load_graph(deadline: pd.Timestamp,path : pathlib.PosixPath,savenames:list=Fa
         dtype="int64",
     )["0"]
     except TypeError:
-        head = sparse.load_npz(path + "/"+savenames[0])
-        tail = sparse.load_npz(path + "/"+savenames[1])
+        head = sparse.load_npz(str(path) + "/"+savenames[0])
+        tail = sparse.load_npz(str(path) + "/"+savenames[1])
         users = pd.read_csv(
-        path +"/"+savenames[2],
+        str(path) +"/"+savenames[2],
         index_col=0,
         dtype="int64",
     )["0"]
@@ -215,7 +215,7 @@ def load_graph(deadline: pd.Timestamp,path : pathlib.PosixPath,savenames:list=Fa
     return tail, head, users
 
 
-def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) -> (sparse.csr_matrix, sparse.csr_matrix):
+def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) -> tuple[sparse.csr_matrix, sparse.csr_matrix,np.ndarray]:
     """
     This function extracts the largest connected component from a hypergraph represented by its tail and head matrices. 
     It removes users from smaller components and corresponding retweets involving those smaller components.
@@ -269,7 +269,7 @@ def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) 
     return tail, head, largest_component
 
 
-def parse_date(date: str | pd.Timestamp) -> pd.Timestamp | str:
+def parse_date(date: str | pd.Timestamp) -> pd.Timestamp:
     """
     Toggle format from string to pandas Timestamp.
 
@@ -279,12 +279,12 @@ def parse_date(date: str | pd.Timestamp) -> pd.Timestamp | str:
     Returns:
     - pd.Timestamp or str: If the input is a string, returns a pandas Timestamp; if the input is already a pandas Timestamp, returns its string representation.
 
-    This function allows for flexible handling of date formats. If the input 'date' is a string, it converts it to a pandas Timestamp with a specific time (00:00:00) and timezone offset (+02). If the input is already a pandas Timestamp, it returns its string representation in the format 'YYYY-MM-DD'.
+    This function allows for flexible handling of date formats. If the input 'date' is a string, it converts it to a pandas Timestamp with a specific time (00:00:00) and timezone offset (+02). If the input is already a pandas Timestamp, it returns its str representation in the format 'YYYY-MM-DD'.
 
     """
     if isinstance(date, str):
         return pd.Timestamp(date + "T00:00:00+02")
-    return date.isoformat().split()[0].split("T")[0]
+    return pd.Timestamp(date.isoformat().split()[0].split("T")[0])
 
 
 def main(deadline: pd.Timestamp) -> None:
