@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 import re,os
 import pandas as pd
 import matplotlib.pyplot as plt
-from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR, NETWORK_DATA
 from fa2 import ForceAtlas2
+from configobj import ConfigObj
 
 def load_com(path_com: str, names_com: list, dtype_com: dict) -> tuple[pd.Series, pd.Series]:
     """
@@ -35,7 +35,7 @@ def load_com(path_com: str, names_com: list, dtype_com: dict) -> tuple[pd.Series
     df_com = pd.read_csv(
         path_com,
         header=0,
-        names=["user.id","leiden","louvain","leiden_5000","leiden_90","louvain_5000","louvain_90"],
+        names=names_com,
         dtype=dtype_com,
         lineterminator="\n"
     )
@@ -44,7 +44,7 @@ def load_com(path_com: str, names_com: list, dtype_com: dict) -> tuple[pd.Series
     louvain=dict["louvain_90"]
     return(leiden,louvain)
 
-def position_creation(G: nx.Graph, path_to_save: str = DATA_DIR + 'position.json') -> dict:
+def position_creation(G: nx.Graph, path_to_save: str = 'position.json') -> dict:
     """
     Generate and save node positions using ForceAtlas2 layout for a given graph.
 
@@ -84,22 +84,22 @@ def position_creation(G: nx.Graph, path_to_save: str = DATA_DIR + 'position.json
         convert_file.write(json.dumps(positions))
     return positions
 
-def pos_reading(path_to_read: str = DATA_DIR + 'position.json') -> dict:
+def pos_reading(path_to_read: str = 'position.json') -> dict:
     """
     Read node positions from a JSON file.
 
     Parameters:
-    - path_to_read (str): Path to the JSON file containing node positions (default is DATA_DIR + 'position.json').
+    - path_to_read (str): Path to the JSON file containing node positions (default is 'position.json').
 
     Returns:
     - dict: Dictionary containing node positions.
     """
-    with open(DATA_DIR+'position.json') as f: 
+    with open(path_to_read) as f: 
         positions = json.load(f)
     return positions
 
 def drawing_params(
-    positions: dict, G: nx.Graph, com2col: dict | list, mappa: pd.Series
+    positions: dict, G: nx.Graph, com2col: list, mappa: pd.Series
 ) -> tuple[list, np.ndarray, list, list, list, np.ndarray]:
     """
     Generate parameters for drawing a graph.
@@ -140,7 +140,7 @@ def drawing_params(
     
 def drawing(
     drawing_params: tuple[list, np.ndarray, list, list, list, np.ndarray],
-    path_to_draw: str = DATA_DIR + "network_map.pdf"
+    path_to_draw: str = "network_map.pdf"
 ) -> None:
     """
     Draw a network map using specified parameters.
@@ -155,7 +155,7 @@ def drawing(
             - list: list of x-coordinates for nodes.
             - list: list of y-coordinates for nodes.
             - np.ndarray: Array of colors for nodes.
-    - path_to_draw (str): Filepath to save the network map (default is DATA_DIR + "network_map.pdf").
+    - path_to_draw (str): Filepath to save the network map (default is "network_map.pdf").
 
     Returns:
     - None
@@ -173,40 +173,31 @@ def drawing(
     e_t=time.time()-s_t
     print('Elapsed time: {} min'.format(e_t/60))
     
-def main(
-    MAKE: bool,
-    com2col: list,
-    path_com: str,
-    dtype_com: dict,
-    names_com: list,
-    path_to_save: str = DATA_DIR + 'position.json',
-    path_to_read: str = DATA_DIR + 'position.json'
-) -> None:
+def main() -> None:
     """
-    Do the main, parameters are set in configuration_params.py.
-
-    Parameters:
-    - MAKE (bool): Boolean flag indicating whether to create new network positions (True) or use existing ones (False).
-    - com2col (dict): Dictionary mapping community IDs to colors.
-    - path_com (str): Filepath to the community information file.
-    - dtype_com (dict): Dictionary specifying data types for community information.
-    - names_com (list): list of column names for community information.
-    - path_to_save (str): Filepath to save the network positions (default is DATA_DIR + 'position.json').
-    - path_to_read (str): Filepath to read existing network positions (default is DATA_DIR + 'position.json').
-
-    Returns:
-    - None
+    Do the main
     """
+    #importing the parameters from config.txt
+    config= ConfigObj("config.txt")
+    path=config["READING_PARAMS"]["DF_FULL"]["path"]
+    TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]
+    LARGE_DATA_DIR=config["DIRS"]["LARGE_DATA_DIR"]
+    NETWORK_DATA=config["DIRS"]["NETWORK_DATA"]
+    DATA_DIR=config["DIRS"]["DATA_DIR"]
+    path_com=config["READING_PARAMS"]["DF_COM"]["path"]
+    MAKE=config["NETWORK_PARAMS"].as_bool("MAKE")
+    com2col=config["NETWORK_PARAMS"].as_list("com2col")
+    dtype_com=config["READING_PARAMS"]["DF_COM"]["dtype_df"]
+    names_com=config["READING_PARAMS"]["DF_COM"].as_list("col_name")
     G=nx.read_graphml(NETWORK_DATA+"/retweet_graph_undirected_2021-06-01.graphml")
     leiden,louvain=load_com(path_com,names_com,dtype_com)
     if MAKE:
-        positions=position_creation(G)
+        positions=position_creation(G,path_to_read= DATA_DIR + 'position.json')
     else:
-        positions=pos_reading()
-    drawing(drawing_params(positions,G,com2col,leiden))
+        positions=pos_reading(DATA_DIR + 'position.json')
+    drawing(drawing_params(positions,G,com2col,leiden),path_to_draw=DATA_DIR+ "network_map.pdf")
 
 
 if __name__ == "__main__":
-    from configuration_params import MAKE,com2col,path_com,dtype_com,names_com
-    main(MAKE,com2col,path_com,dtype_com,names_com)
+    main()
 
