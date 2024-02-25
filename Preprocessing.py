@@ -16,9 +16,10 @@ import pandas as pd
 import numpy as np
 import json
 from sklearn.model_selection import train_test_split
-from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,labels,random_state
+from configobj import ConfigObj
 
-def undersampling(df: pd.DataFrame, random_state=None: int|None) -> pd.DataFrame:
+
+def undersampling(df: pd.DataFrame, random_state : int =None) -> pd.DataFrame:
     """
     Perform undersampling on a DataFrame to balance label classes.
 
@@ -132,19 +133,32 @@ def preproc(df: pd.DataFrame,
     return (df_anno,ids)
 
 
-def main(DATA_INFO: tuple):
+def main():
     """Do the main"""
-    path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,name_pos,seed,label,DATA_PATH=DATA_INFO
+    #parsing and importing parameters from the configuration file
+    config= ConfigObj("config.txt")
+    path_df=config["READING_PARAMS"]["DF_FULL"]["path"]
+    name_df=config["READING_PARAMS"]["DF_FULL"].as_list("col_name")
+    dtype_df=config["READING_PARAMS"]["DF_FULL"]["dtype_df"]
+    path_com=config["READING_PARAMS"]["DF_COM"]["path"]
+    names_com=config["READING_PARAMS"]["DF_COM"].as_list("col_name")
+    dtype_com=config["READING_PARAMS"]["DF_COM"]["dtype_df"]
+    path_pos=config["READING_PARAMS"]["DF_POS"]["path"]
+    name_pos=config["READING_PARAMS"]["DF_POS"].as_list("col_name")
+    seed=config["PREPROCESSING_PARAMS"].as_int("random_state")
+    label=config["PREPROCESSING_PARAMS"].as_list("labels")
+    TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]
+    LARGE_DATA_DIR=config["DIRS"]["LARGE_DATA_DIR"]
+    NETWORK_DATA=config["DIRS"]["NETWORK_DATA"]
+    DATA_DIR=config["DIRS"]["DATA_DIR"]
     df=reading_merging(path_df,dtype_df,path_com,names_com,dtype_com,path_pos,name_pos)
     df_anno,ids=preproc(df,label,seed)
     id_train,id_test=train_test_split(ids, test_size=0.33, random_state=42)
     id_test,id_val=train_test_split(ids, test_size=0.5, random_state=42)
-    df_anno[df_anno.index.isin(id_train)].to_csv(DATA_PATH+'train.csv',lineterminator='\n')
-    df_anno[df_anno.index.isin(id_test)].to_csv(DATA_PATH+'test.csv',lineterminator='\n')
-    df_anno[df_anno.index.isin(id_val)].to_csv(DATA_PATH+'val.csv',lineterminator='\n')
-    
+    df_anno[df_anno.index.isin(id_train)].to_csv(DATA_DIR+'train.csv',line_terminator='\n')
+    df_anno[df_anno.index.isin(id_test)].to_csv(DATA_DIR+'test.csv',line_terminator='\n')
+    df_anno[df_anno.index.isin(id_val)].to_csv(DATA_DIR+'val.csv',line_terminator='\n')
+    print("Preprocessing compleated")
 
 if __name__ == "__main__":
-    from configuration_params import path_df,name_df,dtype_df,path_com,dtype_com,names_com,path_pos,names_pos
-    DATA_INFO=(path_df,name_df,dtype_df,path_com,names_com,dtype_com,path_pos,names_pos,random_state,labels,DATA_DIR)
-    main(DATA_INFO)
+    main()
