@@ -20,22 +20,21 @@ from __future__ import annotations
 
 import pathlib
 from collections import Counter
-
 import networkx as nx
 import numpy as np
 import pandas as pd
 from scipy import sparse
-from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA,NETPATH
-NETPATH.mkdir(parents=True, exist_ok=True)
+from configobj import ConfigObj
 
 
-def load_data(deadline: pd.Timestamp,path: str) -> pd.DataFrame:
+
+def load_data(deadline: pd.Timestamp,path: pathlib.Path| str) -> pd.DataFrame:
     """
     Load the full dataset and filter rows based on a given deadline.
 
     Parameters:
     - deadline (pd.Timestamp): The deadline timestamp to filter the dataset.
-    - path (str): The file path to the CSV dataset.
+    - path (pathlib.PosixPath|str): The file path to the CSV dataset.
 
     Returns:
     - pd.DataFrame: A Pandas DataFrame containing the dataset.
@@ -104,7 +103,7 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     return retweets
 
 
-def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:list=[False],write:bool=True) -> tuple:
+def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib.Path| str,savenames:list=[False],write:bool=True) -> tuple:
     """
     Write down the hypergraph.
 
@@ -113,6 +112,7 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     - deadline (pd.Timestamping): Timestamp representing the deadline for building the hypergraph.
     - savenames (list, optional): List of filenames for saving the hypergraph components. If not provided, default names are used.
     - write (bool, optional):Define if saving the hypergraph produced or not.
+    - path (pathlib.PosixPath|str): Where to save the hypergraphs
 
     Returns:
     - the product between the tail and the head matrix and the list of users.
@@ -159,14 +159,14 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,savenames:li
     print(users.shape, tail.shape, head.shape)
     
     if write:
-        sparse.save_npz(NETPATH / savenames[0], head)
-        sparse.save_npz(NETPATH / savenames[1], tail)
-        users.to_csv(NETPATH / savenames[2])
+        sparse.save_npz(path / savenames[0], head)
+        sparse.save_npz(path / savenames[1], tail)
+        users.to_csv(path / savenames[2])
 
     return tail @ head.T, users
 
 
-def load_graph(deadline: pd.Timestamp ,path : pathlib.PosixPath,savenames:list=[False]) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
+def load_graph(deadline: pd.Timestamp,path: pathlib.Path| str,savenames:list=[False]) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
     """
     Load head, tail, and usermap matrices representing a hypergraph.
 
@@ -287,14 +287,21 @@ def parse_date(date: str | pd.Timestamp) -> pd.Timestamp:
     return pd.Timestamp(date.isoformat().split()[0].split("T")[0])
 
 
-def main(deadline: pd.Timestamp) -> None:
+def main() -> None:
     """Do the main."""
+    config= ConfigObj("config.txt")
+    deadline=parse_date(config["DEADLINE"]["deadline"])
+    path=config["READING_PARAMS"]["DF_FULL"]["path"]
+    TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]
+    LARGE_DATA_DIR=config["DIRS"]["LARGE_DATA_DIR"]
+    NETWORK_DATA=config["DIRS"]["NETWORK_DATA"]
+    NETPATH = pathlib.Path(NETWORK_DATA)
+    NETPATH.mkdir(parents=True, exist_ok=True)
     print("============")
     print(parse_date(deadline))
     print("============")
-    path=LARGE_DATA_DIR+"df_full.csv.gz"
     retweets = compute_graph(load_data(deadline,path))
-    adj, users = write_hypergraph(retweets, deadline)
+    adj, users = write_hypergraph(retweets, deadline,path=NETPATH)
 
     # Directed graph
     graph = nx.from_scipy_sparse_array(
@@ -313,5 +320,4 @@ def main(deadline: pd.Timestamp) -> None:
 
 
 if __name__ == "__main__":
-    from configuration_params import deadline
-    main(parse_date(deadline))
+    main()
