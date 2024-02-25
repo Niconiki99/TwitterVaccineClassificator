@@ -10,3 +10,5 @@ transformers>=4.34.1
 matplotlib == 3.8.0
 multimodal-transformers
 fa2
+configobj
+

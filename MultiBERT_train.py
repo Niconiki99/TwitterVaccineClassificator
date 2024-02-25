@@ -221,6 +221,7 @@ def set_training_args(
     eval_steps: int,
     auto_find_batch_size: bool,
     dataloader_drop_last: bool
+    weight_decay : float
 ) -> TrainingArguments:
     """
     Set training configuration parameters.
@@ -235,6 +236,7 @@ def set_training_args(
     - eval_steps (int): Number of steps between each evaluation run.
     - auto_find_batch_size (bool): Whether to automatically find an efficient batch size.
     - dataloader_drop_last (bool): Whether to drop the last batch in dataloader if its size is smaller than the specified batch size.
+    - weight_decay (float): The weight decay to apply (if not zero) to all layers except all bias and LayerNorm weights in AdamW optimizer.
 
     Returns:
     - training_args (TrainingArguments): Configuration object for training.
@@ -291,7 +293,7 @@ def main():
     hf_config = AutoConfig.from_pretrained(bert)
     hf_config.tabular_config = tabular_config
     model = AutoModelWithTabular.from_pretrained(bert, config=hf_config)
-    training_args=set_training_args(overwrite_output_dir,do_train,do_eval,per_device_train_batch_size,num_train_epochs,logging_steps,eval_steps,auto_find_batch_size,dataloader_drop_last)
+    training_args=set_training_args(overwrite_output_dir,do_train,do_eval,per_device_train_batch_size,num_train_epochs,logging_steps,eval_steps,auto_find_batch_size,dataloader_drop_last,weight_decay)
     set_seed(training_args.seed)
     trainer = Trainer(
         model=model,
