@@ -35,8 +35,8 @@ from multimodal_transformers.model import AutoModelWithTabular
 from multimodal_transformers.model import TabularConfig
 from multimodal_transformers.data import load_data_from_folder, load_data
 from sklearn.metrics import  accuracy_score, precision_score, recall_score, confusion_matrix
-from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR
 
+from configobj import ConfigObj
 
 
 def calc_classification_metrics(p: EvalPrediction)-> dict:
@@ -220,8 +220,9 @@ def set_training_args(
     logging_steps: int,
     eval_steps: int,
     auto_find_batch_size: bool,
-    dataloader_drop_last: bool
-    weight_decay : float
+    dataloader_drop_last: bool,
+    weight_decay : float,
+    TRANSFORMERS_CACHE_DIR :str
 ) -> TrainingArguments:
     """
     Set training configuration parameters.
@@ -237,7 +238,7 @@ def set_training_args(
     - auto_find_batch_size (bool): Whether to automatically find an efficient batch size.
     - dataloader_drop_last (bool): Whether to drop the last batch in dataloader if its size is smaller than the specified batch size.
     - weight_decay (float): The weight decay to apply (if not zero) to all layers except all bias and LayerNorm weights in AdamW optimizer.
-
+    -TRANSFORMERS_CACHE_DIR(str): Where to save the cache of the training proces
     Returns:
     - training_args (TrainingArguments): Configuration object for training.
     """
@@ -258,6 +259,44 @@ def set_training_args(
     return training_args
 def main():
     """Do the main"""
+    config= ConfigObj("config.txt")
+    #importing usefull paths
+    TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]
+    LARGE_DATA_DIR=config["DIRS"]["LARGE_DATA_DIR"]
+    NETWORK_DATA=config["DIRS"]["NETWORK_DATA"]
+    DATA_DIR=config["DIRS"]["DATA_DIR"]
+    os.environ['TRANSFORMERS_CACHE'] = TRANSFORMERS_CACHE_DIR
+    #importing reading parameters
+    read_config=config["READING_PARAMS"]["SPLITTED_DATASETS"]
+    training_path =[read_config["train_path"],read_config["val_path"],read_config["test_path"]]
+    names_dataset =read_config["names_dataset"]
+    dtype_dataset =read_config["dtype_df"]
+    #importing descriptive parameters for huggingface dataset
+    dataset_config=config["MACHINE_LEARNING"]["DATASET_PARAMS"]
+    categorical_cols = dataset_config.as_list("categorical_cols")
+    numerical_cols = dataset_config.as_list("numerical_cols")
+    text_cols = dataset_config.as_list("text_cols")
+    categorical_encode_type = dataset_config["categorical_encode_type"]
+    label_col = dataset_config["label_col"]
+    label_list =[int(i) for i in dataset_config.as_list("label_list")]
+    bert=config["MACHINE_LEARNING"]["bert"]
+    #importing tabular config parameters
+    tab_config=config["MACHINE_LEARNING"]["TABULAR_CONF"]
+    combine_feat_method = tab_config["combine_feat_method"]
+    cat_feat_dim = tab_config.as_int("cat_feat_dim")
+    numerical_feat_dim = tab_config.as_int("numerical_feat_dim")
+    #importing training arguments
+    training_conf = config["MACHINE_LEARNING"]["TRAINING_ARGS"]
+    overwrite_output_dir = training_conf.as_bool("overwrite_output_dir")
+    do_train = training_conf.as_bool("do_train")
+    do_eval = training_conf.as_bool("do_eval")
+    per_device_train_batch_size = training_conf.as_int("per_device_train_batch_size")
+    num_train_epochs = training_conf.as_int("num_train_epochs")
+    logging_steps = training_conf.as_int("logging_steps")
+    eval_steps = training_conf.as_int("eval_steps")
+    weight_decay = training_conf.as_float("weight_decay")
+    auto_find_batch_size =training_conf.as_bool("auto_find_batch_size")
+    dataloader_drop_last =training_conf.as_bool("dataloader_drop_last")
     tokenizer = AutoTokenizer.from_pretrained(bert)
     train_dataset=read_and_convert_df(training_path[0],
                                       names_dataset,
@@ -293,23 +332,26 @@ def main():
     hf_config = AutoConfig.from_pretrained(bert)
     hf_config.tabular_config = tabular_config
     model = AutoModelWithTabular.from_pretrained(bert, config=hf_config)
-    training_args=set_training_args(overwrite_output_dir,do_train,do_eval,per_device_train_batch_size,num_train_epochs,logging_steps,eval_steps,auto_find_batch_size,dataloader_drop_last,weight_decay)
+    training_args=set_training_args(overwrite_output_dir,
+                                    do_train,
+                                    do_eval,
+                                    per_device_train_batch_size,
+                                    num_train_epochs,
+                                    logging_steps,
+                                    eval_steps,
+                                    auto_find_batch_size,
+                                    dataloader_drop_last,
+                                    weight_decay,
+                                    TRANSFORMERS_CACHE_DIR)
     set_seed(training_args.seed)
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=val_dataset,
-        compute_metrics=calc_classification_metrics
-    )
+    trainer = Trainer(model=model,
+                      args=training_args,
+                      train_dataset=train_dataset,
+                      eval_dataset=val_dataset,
+                      compute_metrics=calc_classification_metrics)
     trainer.train()
     trainer.evaluate(eval_dataset=val_dataset)
     
 if __name__ == "__main__":
-    os.environ['TRANSFORMERS_CACHE'] = TRANSFORMERS_CACHE_DIR
-    from configuration_params import bert,dataset_params,tab_conf_params,training_args_params,label_list
-    training_path,names_dataset,dtype_dataset,categorical_cols,numerical_cols,text_cols,categorical_encode_type,label_col,label_list=dataset_params
-    combine_feat_method,cat_feat_dim,numerical_feat_dim=tab_conf_params
-    overwrite_output_dir,do_train,do_eval,per_device_train_batch_size,num_train_epochs,logging_steps,eval_steps,weight_decay,auto_find_batch_size,dataloader_drop_last=training_args_params
     main()
     
