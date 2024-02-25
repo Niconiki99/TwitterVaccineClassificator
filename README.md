@@ -26,7 +26,11 @@ It utilizes natural language processing (NLP) techniques and machine learning to
     ```
 
 2. Install dependencies:
-Verify the dependencies on requirements and install what is missing.
+Verify the dependencies on requirements.txt and install what is missing.
+    ```bash
+   python3 -m pip install -r requirements.txt 
+    ```
+[fa2](https://github.com/bhargavchippada/forceatlas2.git) package installation may cause some problem, because it's not updated, to solve refer to the [branch](https://github.com/AminAlam/forceatlas2.git)
 
 ## Usage
 The project is made up of several modular components, each designed to perform specific analyses independently. To conduct a comprehensive analysis, it is recommended to start with the [build_graphs](https://github.com/Niconiki99/TwitterVaccineClassificator/blob/main/build_graphs.py) module. This step begins with raw tweets and selects only those that fall within a specific deadline. The module then constructs the graph, laying the foundation for subsequent analyses.
@@ -73,23 +77,3 @@ Finally, the project includes the [MultiBERT_train](https://github.com/Niconiki9
 - **tab_conf_params:** Tuple containing tabular configuration parameters.
 - **use_cpu, overwrite_output_dir, do_train, do_eval, per_device_train_batch_size, num_train_epochs, logging_steps, eval_steps, weight_decay, auto_find_batch_size, dataloader_drop_last:** Training arguments and parameters, required by MULTIMODALToolkits structure.
 
-## Requirements: 
-The code is built on python 3.9 and is based on some fundamental packages:
-- **numpy**
-- **pandas**
-- **networkx**
-- **scipy**
-- **pathlib**
-- **collections**
-- **igraph**
-- **sknetwork**
-- **sklearn**
-- **re**
-- **os**
-- **torch**
-- **transformers**
-- **[multimodal toolkit](https://github.com/georgian-io/Multimodal-Toolkit.git)**
-- **json**
-- **matplotlib**
-- **time**
-- **[forceatlas2](https://github.com/AminAlam/forceatlas2.git)**
