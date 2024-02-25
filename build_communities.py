@@ -20,9 +20,8 @@ import numpy as np
 import pandas as pd
 import sknetwork
 from scipy import sparse
-
-from build_graphs import NETPATH, load_graph , parse_date
-from configuration_params import TRANSFORMERS_CACHE_DIR, DATA_DIR, LARGE_DATA_DIR,NETWORK_DATA,DATAPATH
+from configobj import ConfigObj
+from build_graphs import  load_graph , parse_date
 
 
 def partition_core(
@@ -148,13 +147,13 @@ def partition(adj: sparse.spmatrix, kind: str = "louvain", usermap: pd.Series | 
 
 
 
-def plot_comm_size(parts: pd.DataFrame) -> None:
+def plot_comm_size(parts: pd.DataFrame, path:pathlib.Path| str) -> None:
     """
     Plot the community sizes.
 
     Parameters:
     - parts (pd.DataFrame): DataFrame containing community assignments for nodes.
-
+    - path (pathlib.PosixPath|str): Where to save the plots.
     Returns:
     - None
     """
@@ -177,7 +176,7 @@ def plot_comm_size(parts: pd.DataFrame) -> None:
         ax.set_xlim(1, 20)
         ax.axhline(0.9)
     axs[0].set_ylabel("Cumulative ratio.")
-    plt.savefig(DATAPATH/"plot_community_sizes.pdf")
+    plt.savefig(path/"plot_community_sizes.pdf")
     plt.close()
 
 
@@ -227,8 +226,20 @@ def sparse2igraph(adjacency: sparse.spmatrix, **kwargs: dict) -> igraph.Graph:
     return graph
 
 
-def main(deadline: str) -> None:
+def main() -> None:
     """Do the main."""
+    config= ConfigObj("config.txt")
+    deadline=parse_date(config["DEADLINE"]["deadline"])
+    path=config["READING_PARAMS"]["DF_FULL"]["path"]
+    TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]
+    LARGE_DATA_DIR=config["DIRS"]["LARGE_DATA_DIR"]
+    NETWORK_DATA=config["DIRS"]["NETWORK_DATA"]
+    DATA_DIR=config["DIRS"]["DATA_DIR"]
+    NETPATH = pathlib.Path(NETWORK_DATA)
+    print("============")
+    print(parse_date(deadline))
+    print("============")
+    DATAPATH = pathlib.Path(DATA_DIR)
     DATAPATH.mkdir(parents=True, exist_ok=True)
     path=NETPATH
     tail, head, usermap = load_graph(parse_date(deadline),path)
@@ -241,7 +252,7 @@ def main(deadline: str) -> None:
 
     p["louvain"] = partition_core(tail, head, usermap, kind="sk_louvain")
 
-    plot_comm_size(p)
+    plot_comm_size(p,DATAPATH)
 
     for part in p.columns:
         p[part + "_5000"] = simplify_community_struct(p[part], comm_size=5000)
@@ -251,5 +262,4 @@ def main(deadline: str) -> None:
 
 
 if __name__ == "__main__":
-    from configuration_params import deadline
-    main(deadline)
+    main()
