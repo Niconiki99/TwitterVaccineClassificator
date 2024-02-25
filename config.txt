@@ -1,0 +1,192 @@
+[DIRS] #LIST OF USEFUL DIRECTORIES FOR THE PROJECT
+
+#DIRECTORY IN WHICH IS SAVED THE CACHE OF THE TRAINING OF THE BERT MODEL
+TRANSFORMERS_CACHE_DIR= ./Trasf_cache 
+
+#DIRECTORY IN WHICH IS SAVED THE PROCESSED DATAS
+DATA_DIR= ./Data/Data/ 
+
+#DIRECTORY IN WHICH IS SAVED DI NON-PROCESSED DATAS
+LARGE_DATA_DIR= ./Data/Large_Data/ 
+
+#DIRECTORY IN WHICH IS SAVED THE NETWORK DATAS (GRAPHS AND ADJENCY MATRIXES)
+NETWORK_DATA= ./Data/Network_Data 
+
+#DIRECTORY USEFUL FOR THE TESTING
+TEST_PATH= ./Data/Test 
+
+##########################################
+[DEADLINE] #DEADLINE FOR THE SAMPLING OF THE TWEETS
+deadline=2021-06-01
+
+##########################################
+[READING_PARAMS] #LIST OF PARAMETERS FOR THE READING OF THE DATAFRAMES
+
+    [[DF_FULL]] #PARAMETERS FOR THE READING OF THE FIRST DATAFRAME (df_full) 
+        #PATH TO THE DATAFRAME FILE
+        path= ./Data/Large_Data/df_full.csv.gz
+
+        #NAME OF THE COLUMNS IN THE DATAFRAME
+        col_name= id, created_at, text, user.id, user.screen_name, placeurl, retweeted_status.id, retweeted_status.user.id, retweeted_status.url, annotation, user_annotation, lang
+
+        [[[dtype_df]]]#DTYPES OF THE COLUMNS IN THE DATAFRAME
+        id = str
+        text = str
+        user.id = str
+        user.screen_name = str
+        place = str
+        url = str
+        retweeted_status.id = str
+        retweeted_status.user.id = str
+        retweeted_status.url = str
+        annotation = str
+        user_annotation = str
+        lang = str
+
+    [[DF_COM]] #PARAMETERS FOR THE DATAFRAME OF THE COMMUNITIES
+
+    #PATH TO THE DATAFRAME FILE
+    path= ./Data/Data/communities_2021-06-01.csv.gz
+
+    #NAME OF THE COLUMNS IN THE DATAFRAME
+    col_name= user.id, leiden, louvain, leiden_5000, leiden_90, louvain_5000, louvain_90
+
+        [[[dtype_df]]]#DTYPES OF THE COLUMNS IN THE DATAFRAME
+        user.id = str
+        leiden = int
+        louvain = int
+        leiden_5000 = int
+        leiden_90 = int
+        louvain_5000 = int
+        louvain_90 = int
+
+    [[DF_POS]] #PARAMETERS FOR THE DATAFRAME OF THE POSITIONS
+
+    #PATH TO THE DATAFRAME FILE
+    path= ./Data/Data/position.json
+
+    #NAME OF THE COLUMNS IN THE DATAFRAME
+    col_name=x_pos , y_pos
+
+        [[[dtype_df]]] #DTYPES OF THE COLUMNS IN THE DATAFRAME
+
+    [[SPLITTED_DATASETS]] #PARAMETERS FOR THE READING OF THE TRAINING, VALIDATING AND TESTING SET DATAFRAMES
+        #PATH TO THE DATAFRAME FILE
+        train_path= ./Data/Data/train.csv
+
+        val_path= ./Data/Data/val.csv
+
+        test_path= ./Data/Data/test.csv
+
+        #NAME OF THE COLUMNS IN THE DATAFRAMES
+        names_dataset= id , sentence , label , leiden_90 , louvain_90 , x_pos , y_pos 
+
+        [[[dtype_df]]]#DTYPES OF THE COLUMNS IN THE DATAFRAMES
+        id = str
+        sentence = str
+        label = int
+        leiden_90 = int
+        louvain_90 = int
+        x_pos = float
+        y_pos = float            
+
+##########################################
+[NETWORK_PARAMS] #PARAMETERS USED IN THE NETWORK ANALYSIS SCRIPT
+
+#WHETHER TO COMPUTE OR TO READ THE POSITIONS
+MAKE = False
+
+#MAPPING THE COMUNITIES INTO COLORS, FOR THE DRAWING
+com2col = dodgerblue , orange , grey , cyan , pink , peru , white , rebeccapurple
+
+#WHERE THE COMPUTED POSITIONS ARE SAVED
+path_to_save=./Data/Data/position.json
+
+#WHERE TO READ THE POSITIONS
+path_to_read=./Data/Data/position.json
+
+##########################################
+[PREPROCESSING_PARAMS] #PARAMETERS USEFUL IN THE PREPROCESSING SCRIPT
+
+#RANDOM STATE USED IN THE UNDERSAMPLING, AND IN THE TRAIN TEST VALIDATION SPLITTING
+random_state = 42 
+
+#LABELS USED IN THE ANNOTATION PROCESS, USED TO PASS FROM STRINGS TO NUMBERS
+labels= ProVax , Neutral, AntiVax  
+
+##########################################
+[MACHINE_LEARNING]
+bert = m-polignano-uniba/bert_uncased_L-12_H-768_A-12_italian_alb3rt0
+    [[DATASET_PARAMS]] #DESCRIPTION ON HOW THE DATASET IS ORGANIZED
+
+    #WHERE IS APPLIED BERT
+    text_cols = sentence,
+
+    #COLUMNS TREATED AS CATEGORICAL DATAS
+    categorical_cols = leiden_90 , louvain_90
+
+    #COLUMNS TREATED AS NUMERICAL DATAS
+    numerical_cols = x_pos , y_pos
+
+    #TYPE OF CATEGORICAL ENCODING
+    categorical_encode_type = ohe
+
+    #NUMERICAL TRANSFORMER MODEL
+    numerical_transformer_method = none
+
+    #WHERE TO FIND THE GROUND TROUTH
+    label_col = label
+
+    #LIST OF CLASS WE CAN HAVE
+    label_list = 0 , 1 , 2
+
+    [[TABULAR_CONF]] #PARAMETERS OF THE LAST LAYER OF THE CLASSIFIER
+
+    #WHICH METHOD IS USED FOR COMBINING BERT-PROCESSED DATAS, NUMERICAL DATAS AND CATEGORICAL DATAS
+    combine_feat_method = text_only
+
+    #NUMBER OF CATEGORICAL COLUMNS
+    cat_feat_dim = 0
+
+    #NUMBER OF NUMERICAL COLUMNS
+    numerical_feat_dim = 0
+
+    [[TRAINING_ARGS]]#PARAMETERS DEFINING THE TRAINING PROCESS
+
+    #IF USING CPU OR GPU FOR THE TRAINING
+    use_cpu = True
+
+    #IF THE RESULT WILL REWRITE WHAT IS ALREADY WRITTEN IN THE OUTPUT DIRECTORY
+    overwrite_output_dir = True
+
+    #IF THE MODEL IS BUILT TO PERFORM THE TRAINING
+    do_train = True
+
+    #IF THE MODEL IS BUILT TO PERFORM A VALIDATION
+    do_eval = True
+
+    #SIZE OF THE BATCH DURING THE TRAINING, FOR EACH DEVICE
+    per_device_train_batch_size = 32
+
+    #NUMBER OF TRAINING EPOCHS
+    num_train_epochs = 3
+
+    #STEPS BETWEEN EACH UPDATE IN THE GUI
+    logging_steps=25
+
+    #STEPS BETWEEN THE PRINTING OF THE COMPUTED LOSS
+    eval_steps = 250
+
+    #THE WIGHT TO APPLY TO ALL LAYERS EXCEPT ALL BIAS AND LayerNorm WEIGHTS IN AdamW OPTIMIZER
+    weight_decay = 0.01 
+
+    #WHETHER TO FIND OR NOT THE DIMENSION OF THE BATCH AUTONOMOSLY
+    auto_find_batch_size = True
+
+    #WHETHER OR NOT TO DROP THE LAST BATCH IF IT'S INCOMPLETE 
+    dataloader_drop_last = True
+
+
+
+
+
