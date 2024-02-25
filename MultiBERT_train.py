@@ -23,6 +23,7 @@ from sklearn.metrics import (
     matthews_corrcoef,
 )
 import re,os
+import sys
 import pandas as pd
 from tqdm.auto import tqdm
 import torch
@@ -259,7 +260,14 @@ def set_training_args(
     return training_args
 def main():
     """Do the main"""
-    config= ConfigObj("config.txt")
+    config_file = sys.argv[1] if len(sys.argv) > 1 else 'config.txt'
+    if not os.path.isfile(config_file):
+        if config_file == 'configuration.txt':
+            print('Error: The default configuration file "configuration.txt" does not exist in the current folder!')
+        else:
+            print('Error: The specified configuration file "{config_file}" does not exist in the current folder!')
+        sys.exit()
+    config= ConfigObj(config_file)
     #importing usefull paths
     TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]
     LARGE_DATA_DIR=config["DIRS"]["LARGE_DATA_DIR"]

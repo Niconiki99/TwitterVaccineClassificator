@@ -17,7 +17,7 @@ import numpy as np
 import json
 from sklearn.model_selection import train_test_split
 from configobj import ConfigObj
-
+import sys
 
 def undersampling(df: pd.DataFrame, random_state : int =None) -> pd.DataFrame:
     """
@@ -136,7 +136,14 @@ def preproc(df: pd.DataFrame,
 def main():
     """Do the main"""
     #parsing and importing parameters from the configuration file
-    config= ConfigObj("config.txt")
+    config_file = sys.argv[1] if len(sys.argv) > 1 else 'config.txt'
+    if not os.path.isfile(config_file):
+        if config_file == 'configuration.txt':
+            print('Error: The default configuration file "configuration.txt" does not exist in the current folder!')
+        else:
+            print('Error: The specified configuration file "{config_file}" does not exist in the current folder!')
+        sys.exit()
+    config= ConfigObj(config_file)
     path_df=config["READING_PARAMS"]["DF_FULL"]["path"]
     name_df=config["READING_PARAMS"]["DF_FULL"].as_list("col_name")
     dtype_df=config["READING_PARAMS"]["DF_FULL"]["dtype_df"]

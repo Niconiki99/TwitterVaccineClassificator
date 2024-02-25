@@ -22,7 +22,7 @@ import sknetwork
 from scipy import sparse
 from configobj import ConfigObj
 from build_graphs import  load_graph , parse_date
-
+import sys
 
 def partition_core(
     tail: sparse.spmatrix, head: sparse.spmatrix, usermap: pd.Series, kind="sk_louvain"
@@ -228,7 +228,14 @@ def sparse2igraph(adjacency: sparse.spmatrix, **kwargs: dict) -> igraph.Graph:
 
 def main() -> None:
     """Do the main."""
-    config= ConfigObj("config.txt")
+    config_file = sys.argv[1] if len(sys.argv) > 1 else 'config.txt'
+    if not os.path.isfile(config_file):
+        if config_file == 'configuration.txt':
+            print('Error: The default configuration file "configuration.txt" does not exist in the current folder!')
+        else:
+            print('Error: The specified configuration file "{config_file}" does not exist in the current folder!')
+        sys.exit()
+    config= ConfigObj(config_file)
     deadline=parse_date(config["DEADLINE"]["deadline"])
     path=config["READING_PARAMS"]["DF_FULL"]["path"]
     TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]

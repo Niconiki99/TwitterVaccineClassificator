@@ -18,6 +18,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from fa2 import ForceAtlas2
 from configobj import ConfigObj
+import sys
 
 def load_com(path_com: str, names_com: list, dtype_com: dict) -> tuple[pd.Series, pd.Series]:
     """
@@ -177,8 +178,15 @@ def main() -> None:
     """
     Do the main
     """
-    #importing the parameters from config.txt
-    config= ConfigObj("config.txt")
+    config_file = sys.argv[1] if len(sys.argv) > 1 else 'config.txt'
+    if not os.path.isfile(config_file):
+        if config_file == 'configuration.txt':
+            print('Error: The default configuration file "configuration.txt" does not exist in the current folder!')
+        else:
+            print('Error: The specified configuration file "{config_file}" does not exist in the current folder!')
+        sys.exit()
+    config= ConfigObj(config_file)
+    #importing from config file
     path=config["READING_PARAMS"]["DF_FULL"]["path"]
     TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]
     LARGE_DATA_DIR=config["DIRS"]["LARGE_DATA_DIR"]
