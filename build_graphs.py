@@ -103,7 +103,7 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     return retweets
 
 
-def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib.Path| str,savenames:list=[False],write:bool=True) -> tuple:
+def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib.Path| str = None,savenames:list=[False],write:bool=True) -> tuple:
     """
     Write down the hypergraph.
 
