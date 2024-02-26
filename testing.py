@@ -4,7 +4,7 @@ import numpy as np
 from scipy import sparse
 from build_graphs import load_data,compute_graph,write_hypergraph,load_graph
 from build_communities import partition_core,simplify_community_struct
-from DIRS import TEST_PATH
+from configobj import ConfigObj 
 
 def generating_path() -> (str, pd.Timestamp):
     """
@@ -13,7 +13,8 @@ def generating_path() -> (str, pd.Timestamp):
     Returns:
         Tuple[str, pd.Timestamp]: A tuple containing the path (str) and the deadline (pd.Timestamp).
     """
-    path=TEST_PATH
+    config= ConfigObj("config.txt")
+    path=config["DIRS"]["TEST_PATH"]
     deadline=pd.Timestamp("2021-06-01" + "T00:00:00+02")
     return path,deadline
 
