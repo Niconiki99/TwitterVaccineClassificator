@@ -300,7 +300,7 @@ def test_connected_adj_matr_diag():
     Test function for verifying diagonal elements of the adjacency matrix for connected nodes.
 
     GIVEN: A simple dataframe.
-    WHEN: Computing the adjacy matrix.
+    WHEN: Computing the adjacency matrix.
     THEN: The diagonal elements of the adjacency matrix should be zero.
     """
     path,deadline,dtype=generating_metadata_example()
@@ -330,7 +330,7 @@ def test_load_graph_connected():
     """
     Test function for loading a connected graph.
 
-    GIVEN: The computed adjency matrix.
+    GIVEN: The computed adjacency matrix.
     WHEN: Loading the connected graph data using load_graph() function.
     THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix and usermap.
     """
@@ -342,7 +342,9 @@ def test_load_graph_connected():
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
     tail, head, usermap = load_graph(deadline,path,savenames)
     adj_test=tail @ (head.transpose())
-    assert (adj_test).nnz==adj.nnz
+    adj_test=(tail @ (head.transpose())).data
+    adj_res=adj.data
+    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
 
 def test_partition_louvain_connected():
     """
@@ -397,7 +399,7 @@ def test_comp_connected_adj_matr_diag():
     Test function for verifying diagonal elements of the adjacency matrix for completly connected nodes.
 
     GIVEN: A simple dataframe.
-    WHEN: Computing the adjacy matrix.
+    WHEN: Computing the adjacency matrix.
     THEN: The diagonal elements of the adjacency matrix should be zero.
     """
     path,deadline,dtype=generating_metadata_example()
@@ -427,7 +429,7 @@ def test_load_graph_comp_connected():
     """
     Test function for loading a completly connected graph.
 
-    GIVEN: The computed adjency matrix.
+    GIVEN: The computed adjacency matrix.
     WHEN: Loading the connected graph data using load_graph() function.
     THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix.
     """
@@ -440,18 +442,42 @@ def test_load_graph_comp_connected():
     tail, head, usermap = load_graph(deadline,path,savenames)
     users=[int(i) for i in users]
     usermap=[int(i) for i in usermap]
-    adj_test=tail @ (head.transpose())
-    assert (adj_test).nnz==adj.nnz
+    adj_test=(tail @ (head.transpose())).data
+    adj_res=adj.data
+    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
 
-def test_simmetry_comp_con():
+def test_symmetry_comp_con():
+    """
+    Test symmetry of the adjacency matrix in the case of a bidirectional completely connected graph.
+
+    GIVEN: A bidirectional completely connected graph.
+    WHEN: Computing the adjacency matrix.
+    THEN: The matrix should be equal to the transposed matrix.
+    """
     path,deadline,dtype=generating_metadata_example()
     name=path+"/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    assert(adj.transpose().nnz==adj.nnz)
+    adj_test=adj.data
+    adj_res=adj.transpose().data
+    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
 
+def test_comp_con_is_completely_connected():
+    """
+    Test if the adjacency matrix satisfies proprierty of a completely connected graph.
 
+    GIVEN: A bidirectional completely connected graph.
+    WHEN: Computing the adjacency matrix.
+    THEN: The matrix should has exactly n(n-1) links (because each node links as a source and as a target with all the users).
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/comp_connected.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    n=len(users)
+    assert (np.sum(adj.data)==(n*(n-1)))
 
 def test_partition_louvain_comp_connected():
     """
@@ -481,6 +507,141 @@ def test_partition_leiden_comp_connected():
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     assert (i==0 for i in results)
+    
+def test_comp_connected_undir_comp_graph():
+    """
+    Test function for computing a graph in a undirected completely connected toy model.
+
+    GIVEN: A DataFrame loaded from a CSV file using load_data(), coming from a known configuration.
+    WHEN: computing a graph using compute_graph() function.
+    THEN: the function should return a graph with expected values for the columns.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/undir_comp_con.csv.gz"
+    df=load_data(deadline,name,dtype)
+    rewteets=compute_graph(df)
+    expected_source=[0,0,0,0,0,1,1,2,2,3,3,3]
+    expected_hyperlink=[0,1,2,3,4,5,6,7,8,9,10,11]
+    expected_target=[1,2,3,1,2,3,2,1,0,0,1,2]
+    assert (rewteets["source"][i]==expected_source[i] for i in range(len(rewteets)))
+    assert (rewteets["hyperlink"][i]==expected_hyperlink[i] for i in range(len(rewteets)))
+    assert (rewteets["target"][i]==expected_target[i] for i in range(len(rewteets)))
+
+def test_undir_comp_con_adj_matr_diag():
+    """
+    Test function for verifying diagonal elements of the adjacency matrix for undirected completly connected nodess.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the adjacency matrix.
+    THEN: The diagonal elements of the adjacency matrix should be zero.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/undir_comp_con.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    assert (adj.toarray()[i,i]==0 for i in range(len(retweets.source.unique())))
+
+def test_undir_comp_con_adj():
+    """
+    Test function for verifying adjacency matrix consistency with source counts.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the graph and writing hypergraph using compute_graph() and write_hypergraph() functions.
+    THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/undir_comp_con.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    expected_counts=[len(retweets[retweets["source"]==str(i)]) for i in users]
+    assert (np.sum(adj.toarray[i])==expected_counts[i] for i in range(len(users)))
+
+def test_load_graph_undir_comp_con():
+    """
+    Test function for loading a completly connected graph.
+
+    GIVEN: The computed adjacency matrix.
+    WHEN: Loading the undirected compleatly connected graph data using load_graph() function.
+    THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/undir_comp_con.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    savenames=[pathlib.Path("undir_comp_con_head.npz"),pathlib.Path("undir_comp_con_tail.npz"),pathlib.Path("undir_comp_con_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames)
+    users=[int(i) for i in users]
+    usermap=[int(i) for i in usermap]
+    adj_test=(tail @ (head.transpose())).data
+    adj_res=adj.data
+    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
+
+def test_upp_triang_undir_comp_con():
+    """
+    Test that the adjacency matrix in the case of a bidirectional completely connected graph is upper triangular.
+
+    GIVEN: An undirected completely connected graph.
+    WHEN: Computing the adjacency matrix.
+    THEN: The matrix + its transpose should be equal to the transposed summ matrix.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/comp_connected.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    adj_sum=adj+adj.transpose()
+    adj_test=adj_sum.data
+    adj_res=adj_sum.transpose().data
+    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
+
+def test_undir_comp_con_is_completely_connected():
+    """
+    Test if the adjacency matrix satisfies proprierty of a completely connected graph.
+
+    GIVEN: A bidirectional completely connected graph.
+    WHEN: Computing the adjacency matrix.
+    THEN: The matrix should has exactly n(n-1)/2 links (because each node links as a source and as a target with all the users).
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/undir_comp_con.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    n=len(users)
+    assert (np.sum(adj.data)==(n*(n-1))//2)
+
+def test_partition_louvain_undir_comp_con():
+    """
+    Test function for partitioning a completly connected graph with Louvain algorithm.
+
+    GIVEN: A graph formed by nodes all connected.
+    WHEN: Partitioning the connected graph using partition_core() function with Louvain algorithm.
+    THEN: The resulting partitions should be formed by only one community.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    savenames=[pathlib.Path("undir_comp_con_head.npz"),pathlib.Path("undir_comp_con_tail.npz"),pathlib.Path("undir_comp_con_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames)
+    results=partition_core(tail,head,usermap)
+    assert (i==0 for i in results)
+
+
+def test_partition_undir_leiden_comp_connected():
+    """
+    Test function for partitioning a connected graph with Leiden algorithm.
+
+    GIVEN: A graph formed by nodes all connected.
+    WHEN: Partitioning the connected graph using partition_core() function with Leiden algorithm.
+    THEN: The resulting partitions should be formed by only one community.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    savenames=[pathlib.Path("undir_comp_con_head.npz"),pathlib.Path("undir_comp_con_tail.npz"),pathlib.Path("undir_comp_con_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames)
+    results=partition_core(tail,head,usermap,kind="leiden")
+    assert (i==0 for i in results)
+    
 
 
 
