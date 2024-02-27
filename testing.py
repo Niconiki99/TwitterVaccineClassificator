@@ -585,7 +585,7 @@ def test_upp_triang_undir_comp_con():
 
     GIVEN: An undirected completely connected graph.
     WHEN: Computing the adjacency matrix.
-    THEN: The matrix + its transpose should be equal to the transposed summ matrix.
+    THEN: The matrix + its transpose should be equal to the transposed sum matrix.
     """
     path,deadline,dtype=generating_metadata_example()
     name=path+"/comp_connected.csv.gz"
@@ -599,11 +599,11 @@ def test_upp_triang_undir_comp_con():
 
 def test_undir_comp_con_is_completely_connected():
     """
-    Test if the adjacency matrix satisfies proprierty of a completely connected graph.
+    Test if the adjacency matrix satisfies the properties of a completely connected graph.
 
     GIVEN: A bidirectional completely connected graph.
     WHEN: Computing the adjacency matrix.
-    THEN: The matrix should has exactly n(n-1)/2 links (because each node links as a source and as a target with all the users).
+    THEN: The matrix should have exactly n(n-1)/2 links (because each node links as a source and target with all the users).
     """
     path,deadline,dtype=generating_metadata_example()
     name=path+"/undir_comp_con.csv.gz"
