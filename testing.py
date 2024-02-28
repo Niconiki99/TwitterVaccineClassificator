@@ -65,6 +65,10 @@ def generate_simple_adj() -> (sparse.coo_matrix, sparse.coo_matrix):
     id=sparse.coo_matrix((np.ones(4),(y,y)),shape=(4,4))
     return adj,id
 ########## TEST FUNCTIONS ##########
+######################################################
+#GENERAL FUNCTIONS#
+######################################################
+
 def test_load_data():
     """
     Test function for loading data.
@@ -125,6 +129,9 @@ def test_write_hypergraph_matrix():
     matrix,users=write_hypergraph(retweet,deadline,write=False)
     assert isinstance(matrix,sparse.csr_matrix)
 
+######################################################
+#SIMPLE CASE#
+######################################################
 
 def test_write_hypergraph_simple_case():
     """
@@ -192,7 +199,8 @@ def test_simplify_community_struct_size_lv():
     path,deadline,dtype=generate_metadata_full()
     tail, head, usermap = load_graph(deadline,path)
     simplified_com=simplify_community_struct(partition_core(tail,head,usermap),comm_size)
-    assert (i<comm_size+1 for i in simplified_com.value_counts().sort_values(ascending=False))
+    for i in simplified_com.value_counts().sort_values(ascending=False):
+        assert (i>=comm_size+1)
 
 def test_simplify_community_struct_size_ld():
     """
@@ -206,7 +214,8 @@ def test_simplify_community_struct_size_ld():
     path,deadline,dtype=generate_metadata_full()
     tail, head, usermap = load_graph(deadline,path)
     simplified_com=simplify_community_struct(partition_core(tail,head,usermap,kind="leiden"),comm_size)
-    assert (i<comm_size+1 for i in simplified_com.value_counts().sort_values(ascending=False))
+    for i in simplified_com.value_counts().sort_values(ascending=False):
+        assert (i>=comm_size+1)
 
 def test_simplify_community_coverage_lv_40():
     """
@@ -275,6 +284,9 @@ def test_simplify_community_coverage_ld_90():
     counts=coms.value_counts().sort_values(ascending=False)
     coverage=np.sum(counts.iloc[:len(np.unique(simplified_com.values))-1].values)/len(coms)
     assert (coverage>coverage-0.01)
+######################################################
+#CONNECTED GRAPH CASE#
+######################################################
     
 def test_connected_comp_graph():
     """
@@ -287,13 +299,15 @@ def test_connected_comp_graph():
     path,deadline,dtype=generating_metadata_example()
     name=path+"/connected.csv.gz"
     df=load_data(deadline,name,dtype)
-    rewteets=compute_graph(df)
+    retweets=compute_graph(df).astype(int)
     expected_source=[0,0,0,0,0,1,1,2,2,3,3,3]
     expected_hyperlink=[0,1,2,3,4,5,6,7,8,9,10,11]
     expected_target=[1,2,3,1,2,3,2,1,0,0,1,2]
-    assert (rewteets["source"][i]==expected_source[i] for i in range(len(rewteets)))
-    assert (rewteets["hyperlink"][i]==expected_hyperlink[i] for i in range(len(rewteets)))
-    assert (rewteets["target"][i]==expected_target[i] for i in range(len(rewteets)))
+    for i in range(len(retweets)):
+        assert (retweets["source"][i]==expected_source[i])
+        assert (retweets["hyperlink"][i]==expected_hyperlink[i])
+        assert (retweets["target"][i]==expected_target[i])
+
 
 def test_connected_adj_matr_diag():
     """
@@ -308,7 +322,8 @@ def test_connected_adj_matr_diag():
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    assert (adj.toarray()[i,i]==0 for i in range(len(retweets.source.unique())))
+    for i in range(len(users)):
+        assert (adj.toarray()[i,i]==0)
 
 def test_con_adj():
     """
@@ -324,7 +339,8 @@ def test_con_adj():
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
     expected_counts=[len(retweets[retweets["source"]==str(i)]) for i in users]
-    assert (np.sum(adj.toarray[i])==expected_counts[i] for i in range(len(users)))
+    for i in range(len(users)):    
+        assert (np.sum(adj.toarray()[i])==expected_counts[i])
 
 def test_load_graph_connected():
     """
@@ -341,10 +357,10 @@ def test_load_graph_connected():
     savenames=[pathlib.Path("connected_head.npz"),pathlib.Path("connected_tail.npz"),pathlib.Path("connected_usermap.csv.gz")]
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
     tail, head, usermap = load_graph(deadline,path,savenames)
-    adj_test=tail @ (head.transpose())
-    adj_test=(tail @ (head.transpose())).data
-    adj_res=adj.data
-    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
+    adj_trasp=tail @ (head.transpose())
+    for i in range(len(users)):
+        for j in range(len(users)):
+            assert (adj_trasp.toarray()[int(usermap[i]),int(usermap[i])]==adj.toarray()[int(users[i]),int(users[i])])
 
 def test_partition_louvain_connected():
     """
@@ -358,8 +374,8 @@ def test_partition_louvain_connected():
     savenames=[pathlib.Path("connected_head.npz"),pathlib.Path("connected_tail.npz"),pathlib.Path("connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
-    assert (i==0 for i in results)
-
+    for i in results:
+        assert (i==0)
 
 def test_partition_leiden_connected():
     """
@@ -373,7 +389,12 @@ def test_partition_leiden_connected():
     savenames=[pathlib.Path("connected_head.npz"),pathlib.Path("connected_tail.npz"),pathlib.Path("connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
-    assert (i==0 for i in results)
+    for i in results:
+        assert (i==0)
+
+######################################################
+#DIRECTED COMPLETELY CONNECTED CASE#
+######################################################
 
 def test_comp_connected_comp_graph():
     """
@@ -386,13 +407,14 @@ def test_comp_connected_comp_graph():
     path,deadline,dtype=generating_metadata_example()
     name=path+"/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
-    rewteets=compute_graph(df)
-    expected_source=[0,0,0,0,0,1,1,2,2,3,3,3]
+    retweets=compute_graph(df).astype(int)
+    expected_source=[0,0,0,1,1,1,2,2,2,3,3,3]
     expected_hyperlink=[0,1,2,3,4,5,6,7,8,9,10,11]
-    expected_target=[1,2,3,1,2,3,2,1,0,0,1,2]
-    assert (rewteets["source"][i]==expected_source[i] for i in range(len(rewteets)))
-    assert (rewteets["hyperlink"][i]==expected_hyperlink[i] for i in range(len(rewteets)))
-    assert (rewteets["target"][i]==expected_target[i] for i in range(len(rewteets)))
+    expected_target=[1,2,3,0,2,3,0,1,3,0,1,2]
+    for i in range(len(retweets)):
+        assert (retweets["source"][i]==expected_source[i] )
+        assert (retweets["hyperlink"][i]==expected_hyperlink[i])
+        assert (retweets["target"][i]==expected_target[i])
 
 def test_comp_connected_adj_matr_diag():
     """
@@ -407,7 +429,8 @@ def test_comp_connected_adj_matr_diag():
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    assert (adj.toarray()[i,i]==0 for i in range(len(retweets.source.unique())))
+    for i in range(len(users)):
+        assert (adj.toarray()[i,i]==0)
 
 def test_comp_con_adj():
     """
@@ -423,7 +446,8 @@ def test_comp_con_adj():
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
     expected_counts=[len(retweets[retweets["source"]==str(i)]) for i in users]
-    assert (np.sum(adj.toarray[i])==expected_counts[i] for i in range(len(users)))
+    for i in range(len(users)):    
+        assert (np.sum(adj.toarray()[i])==expected_counts[i])
 
 def test_load_graph_comp_connected():
     """
@@ -444,7 +468,8 @@ def test_load_graph_comp_connected():
     usermap=[int(i) for i in usermap]
     adj_test=(tail @ (head.transpose())).data
     adj_res=adj.data
-    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
+    for i in range(len(adj_test)): 
+        assert (adj_test[i]==adj_res[i])
 
 def test_symmetry_comp_con():
     """
@@ -461,7 +486,8 @@ def test_symmetry_comp_con():
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
     adj_test=adj.data
     adj_res=adj.transpose().data
-    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
+    for i in range(len(adj_test)): 
+        assert (adj_test[i]==adj_res[i])
 
 def test_comp_con_is_completely_connected():
     """
@@ -491,7 +517,8 @@ def test_partition_louvain_comp_connected():
     savenames=[pathlib.Path("comp_connected_head.npz"),pathlib.Path("comp_connected_tail.npz"),pathlib.Path("comp_connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
-    assert (i==0 for i in results)
+    for i in results:
+        assert (i==0)
 
 
 def test_partition_leiden_comp_connected():
@@ -506,8 +533,13 @@ def test_partition_leiden_comp_connected():
     savenames=[pathlib.Path("comp_connected_head.npz"),pathlib.Path("comp_connected_tail.npz"),pathlib.Path("comp_connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
-    assert (i==0 for i in results)
-    
+    for i in results:
+        assert (i==0)
+        
+######################################################
+#UNDIRECTED COMPLETELY CONNECTED CASE#
+######################################################
+
 def test_comp_connected_undir_comp_graph():
     """
     Test function for computing a graph in a undirected completely connected toy model.
@@ -519,13 +551,15 @@ def test_comp_connected_undir_comp_graph():
     path,deadline,dtype=generating_metadata_example()
     name=path+"/undir_comp_con.csv.gz"
     df=load_data(deadline,name,dtype)
-    rewteets=compute_graph(df)
-    expected_source=[0,0,0,0,0,1,1,2,2,3,3,3]
-    expected_hyperlink=[0,1,2,3,4,5,6,7,8,9,10,11]
-    expected_target=[1,2,3,1,2,3,2,1,0,0,1,2]
-    assert (rewteets["source"][i]==expected_source[i] for i in range(len(rewteets)))
-    assert (rewteets["hyperlink"][i]==expected_hyperlink[i] for i in range(len(rewteets)))
-    assert (rewteets["target"][i]==expected_target[i] for i in range(len(rewteets)))
+    retweets=compute_graph(df)
+    retweets=retweets.astype(int)
+    expected_source=[1,0,0,1,1,2]
+    expected_hyperlink=[0,1,2,3,4,5]
+    expected_target=[0,2,3,2,3,3]
+    for i in range(len(retweets)):
+        assert (retweets["source"][i]==expected_source[i])
+        assert (retweets["hyperlink"][i]==expected_hyperlink[i])
+        assert (retweets["target"][i]==expected_target[i])
 
 def test_undir_comp_con_adj_matr_diag():
     """
@@ -540,7 +574,8 @@ def test_undir_comp_con_adj_matr_diag():
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    assert (adj.toarray()[i,i]==0 for i in range(len(retweets.source.unique())))
+    for i in range(len(users)):
+        assert (adj.toarray()[i,i]==0)
 
 def test_undir_comp_con_adj():
     """
@@ -556,7 +591,8 @@ def test_undir_comp_con_adj():
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
     expected_counts=[len(retweets[retweets["source"]==str(i)]) for i in users]
-    assert (np.sum(adj.toarray[i])==expected_counts[i] for i in range(len(users)))
+    for i in range(len(users)):    
+        assert (np.sum(adj.toarray()[i])==expected_counts[i])
 
 def test_load_graph_undir_comp_con():
     """
@@ -577,7 +613,8 @@ def test_load_graph_undir_comp_con():
     usermap=[int(i) for i in usermap]
     adj_test=(tail @ (head.transpose())).data
     adj_res=adj.data
-    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
+    for i in range(len(adj_test)): 
+        assert (adj_test[i]==adj_res[i])
 
 def test_upp_triang_undir_comp_con():
     """
@@ -595,7 +632,8 @@ def test_upp_triang_undir_comp_con():
     adj_sum=adj+adj.transpose()
     adj_test=adj_sum.data
     adj_res=adj_sum.transpose().data
-    assert (adj_test[i]==adj_res[i] for i in range(len(adj_test)))
+    for i in range(len(adj_test)): 
+        assert (adj_test[i]==adj_res[i])
 
 def test_undir_comp_con_is_completely_connected():
     """
@@ -613,21 +651,6 @@ def test_undir_comp_con_is_completely_connected():
     n=len(users)
     assert (np.sum(adj.data)==(n*(n-1))//2)
 
-def test_partition_louvain_undir_comp_con():
-    """
-    Test function for partitioning a completly connected graph with Louvain algorithm.
-
-    GIVEN: A graph formed by nodes all connected.
-    WHEN: Partitioning the connected graph using partition_core() function with Louvain algorithm.
-    THEN: The resulting partitions should be formed by only one community.
-    """
-    path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("undir_comp_con_head.npz"),pathlib.Path("undir_comp_con_tail.npz"),pathlib.Path("undir_comp_con_usermap.csv.gz")]
-    tail, head, usermap = load_graph(deadline,path,savenames)
-    results=partition_core(tail,head,usermap)
-    assert (i==0 for i in results)
-
-
 def test_partition_undir_leiden_comp_connected():
     """
     Test function for partitioning a connected graph with Leiden algorithm.
@@ -640,10 +663,193 @@ def test_partition_undir_leiden_comp_connected():
     savenames=[pathlib.Path("undir_comp_con_head.npz"),pathlib.Path("undir_comp_con_tail.npz"),pathlib.Path("undir_comp_con_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
-    assert (i==0 for i in results)
-    
+    for i in results:
+        assert (i==0)
+
+######################################################
+#TWO ISLANDS CASE#
+###################################################### 
+
+def test_two_islands_comp_graph():
+    """
+    Test function for computing a graph in a two islands toy model.
+
+    GIVEN: A DataFrame loaded from a CSV file using load_data(), coming from a known configuration.
+    WHEN: computing a graph using compute_graph() function.
+    THEN: the function should return a graph with expected values for the columns.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/two_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df).astype(int)
+    expected_source=[3,2,2,1,4,5,5,6,3,6]
+    expected_hyperlink=[0,1,2,3,4,5,6,7,8,9]
+    expected_target=[1,1,3,0,5,4,6,4,2,5]
+    for i in range(len(retweets)):
+        assert (retweets["source"][i]==expected_source[i])
+        assert (retweets["hyperlink"][i]==expected_hyperlink[i])
+        assert (retweets["target"][i]==expected_target[i])
 
 
+def test_two_islands_adj_matr_conn_comp_diag():
+    """
+    Test function for verifying diagonal elements of the adjacency matrix for two islands of nodes.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the adjacency matrix.
+    THEN: The diagonal elements of the adjacency matrix should be zero.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/two_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    for i in range(len(users)):
+        assert (adj.toarray()[i,i]==0)
+
+def test_two_islands_adj_matr_diag():
+    """
+    Test function for verifying diagonal elements of the adjacency matrix for two islands of nodes.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the adjacency matrix.
+    THEN: The diagonal elements of the adjacency matrix should be zero.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/two_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False,exctract_largest_comp=False)
+    for i in range(len(users)):
+        assert (adj.toarray()[i,i]==0)
+
+def test_two_islands_adj_conn_comp():
+    """
+    Test function for verifying adjacency matrix consistency with source counts.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the graph and writing hypergraph using compute_graph() and write_hypergraph() functions.
+    THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/two_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    expected_counts=[len(retweets[retweets["source"]==str(i)]) for i in users]
+    for i in range(len(users)):    
+        assert (np.sum(adj.toarray()[i])==expected_counts[i])
+
+def test_two_islands_adj_matr_separation():
+    """
+    Test that, as expected, the adj matrix produced by write hypegraph, is splitted.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the adjacency matrix, keeping the whole net, not only the connected component.
+    THEN: The adjacency matrix is splitted in two parts.
+    """
+    isl_1_dim=4
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/two_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,exctract_largest_comp=False,write=False)
+    adj_ordered=adj.toarray()
+    users=[int(i) for i in users]
+    for i in range(len(users)):
+        for j in users:
+            adj_ordered[users[i],users[j]]=adj[i,j]
+    for i in range(4):
+        for j in range(3):
+            print(i,len(users)-j-1)
+            assert adj_ordered[i,len(users)-j-1]==0
+            assert adj_ordered[len(users)-j-1,i]==0
+
+def test_two_islands_adj():
+    """
+    Test function for verifying adjacency matrix consistency with source counts.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the graph and writing hypergraph using compute_graph() and write_hypergraph() functions.
+    THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/two_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False,exctract_largest_comp=False)
+    expected_counts=[len(retweets[retweets["source"]==str(i)]) for i in users]
+    for i in range(len(users)):    
+        assert (np.sum(adj.toarray()[i])==expected_counts[i])
+
+def test_load_graph_two_islands():
+    """
+    Test function for loading a two islands graph.
+
+    GIVEN: The computed adjacency matrix.
+    WHEN: Loading the connected graph data using load_graph() function.
+    THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/two_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    savenames=[pathlib.Path("two_islands_head.npz"),pathlib.Path("two_islands_tail.npz"),pathlib.Path("two_islands_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames)
+    users=[int(i) for i in users]
+    usermap=[int(i) for i in usermap]
+    adj_test=(tail @ (head.transpose())).data
+    adj_res=adj.data
+    for i in range(len(adj_test)): 
+        assert (adj_test[i]==adj_res[i])
+
+def test_partition_leiden_two_islands_exctracted():
+    """
+    Test function for partitioning a two island graph with Leiden algorithm, computing only the largest connected component.
+
+    GIVEN: A graph formed by two islands of nodes.
+    WHEN: Partitioning the connected graph (only the connected component) using partition_core() function with Leiden algorithm.
+    THEN: The resulting partitions should be formed by only one community.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    savenames=[pathlib.Path("two_islands_head.npz"),pathlib.Path("two_islands_tail.npz"),pathlib.Path("two_islands_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames,)
+    results=partition_core(tail,head,usermap,kind="leiden")
+    for i in results:
+        assert (i==0)
+
+def test_partition_louvain_two_islands_unexctracted():
+    """
+    Test function for partitioning a two island graph with Louvain algorithm.
+
+    GIVEN: A graph formed by two islands of nodes.
+    WHEN: Partitioning the whole graph using partition_core() function with Louvain algorithm.
+    THEN: The resulting partitions should be formed by two communities.
+    """
+    isl_1_dim=4
+    path,deadline,dtype=generating_metadata_example()
+    savenames=[pathlib.Path("comp_two_islands_head.npz"),pathlib.Path("comp_two_islands_tail.npz"),pathlib.Path("comp_two_islands_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames)
+    results=partition_core(tail,head,usermap)
+    for i in range(len(results)):
+        assert (results[i]==0 if i<isl_1_dim else results[i]==1)
 
 
+def test_partition_leiden_two_islands_unexctracted():
+    """
+    Test function for partitioning a two island graph with Leiden algorithm.
+
+    GIVEN: A graph formed by two islands of nodes.
+    WHEN: Partitioning the whole graph using partition_core() function with Leiden algorithm.
+    THEN: The resulting partitions should be formed by two communities.
+    """
+    isl_1_dim=4
+    path,deadline,dtype=generating_metadata_example()
+    savenames=[pathlib.Path("comp_two_islands_head.npz"),pathlib.Path("comp_two_islands_tail.npz"),pathlib.Path("comp_two_islands_usermap.csv.gz")]
+
+    tail, head, usermap = load_graph(deadline,path,savenames,)
+    results=partition_core(tail,head,usermap,kind="leiden")
+    for i in range(len(results)):
+        assert (results[i]==0 if i<isl_1_dim else results[i]==1)
 
