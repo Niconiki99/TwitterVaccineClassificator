@@ -28,13 +28,14 @@ from configobj import ConfigObj
 import sys
 
 
-def load_data(deadline: pd.Timestamp,path: pathlib.Path| str) -> pd.DataFrame:
+def load_data(deadline: pd.Timestamp,path: pathlib.Path| str, dtype: dict) -> pd.DataFrame:
     """
     Load the full dataset and filter rows based on a given deadline.
 
     Parameters:
     - deadline (pd.Timestamp): The deadline timestamp to filter the dataset.
     - path (pathlib.PosixPath|str): The file path to the CSV dataset.
+    - dtype (dict): Data types for columns in the main DataFrame.
 
     Returns:
     - pd.DataFrame: A Pandas DataFrame containing the dataset.
@@ -50,20 +51,7 @@ def load_data(deadline: pd.Timestamp,path: pathlib.Path| str) -> pd.DataFrame:
     df_full = pd.read_csv(
         path,
         index_col="id",
-        dtype={
-            "id": str,
-            "text": str,
-            "user.id": str,
-            "user.screen_name": str,
-            "place": str,
-            "url": str,
-            "retweeted_status.id": str,
-            "retweeted_status.user.id": str,
-            "retweeted_status.url": str,
-            "annotation": str,
-            "user_annotation": str,
-            "lang": str,
-        },
+        dtype=dtype,
         na_values=["", "[]"],
         parse_dates=["created_at"],
         lineterminator="\n",
@@ -103,7 +91,7 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     return retweets
 
 
-def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib.Path| str = None,savenames:list=[False],write:bool=True) -> tuple:
+def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib.Path| str = None,savenames:list=[False],write:bool=True,exctract_largest_comp:bool =True) -> tuple:
     """
     Write down the hypergraph.
 
@@ -113,6 +101,7 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib
     - savenames (list, optional): List of filenames for saving the hypergraph components. If not provided, default names are used.
     - write (bool, optional):Define if saving the hypergraph produced or not.
     - path (pathlib.PosixPath|str): Where to save the hypergraphs
+    -exctract_largest_comp (bool): Weather or not to exctract the largest component.
 
     Returns:
     - the product between the tail and the head matrix and the list of users.
@@ -150,19 +139,21 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib
         dtype=int,
     ).tocsr()
     print("Head", head.shape)
-
-    # only get the largest component
-    tail, head, comp_indx = extract_largest_component(tail, head)
-
+    
     users = pd.Series(list(users_dict.keys()), index=list(users_dict.values()))
-    users = users[comp_indx].reset_index(drop=True)
-    print(users.shape, tail.shape, head.shape)
+    print("users", users)
+    if (exctract_largest_comp):
+        # only get the largest component
+        tail, head, comp_indx = extract_largest_component(tail, head)
+        users = users[comp_indx].reset_index(drop=True)
+        print(users.shape, tail.shape, head.shape)
     
     if write:
         sparse.save_npz(path / savenames[0], head)
         sparse.save_npz(path / savenames[1], tail)
         users.to_csv(path / savenames[2])
-
+        
+    
     return tail @ head.T, users
 
 
@@ -302,12 +293,16 @@ def main() -> None:
     TRANSFORMERS_CACHE_DIR=config["DIRS"]["TRANSFORMERS_CACHE_DIR"]
     LARGE_DATA_DIR=config["DIRS"]["LARGE_DATA_DIR"]
     NETWORK_DATA=config["DIRS"]["NETWORK_DATA"]
+    dtype=config["READING_PARAMS"]["DF_FULL"]["dtype_df"]
     NETPATH = pathlib.Path(NETWORK_DATA)
     NETPATH.mkdir(parents=True, exist_ok=True)
+    
+    #####################################
+    #End of parameters import
     print("============")
     print(parse_date(deadline))
     print("============")
-    retweets = compute_graph(load_data(deadline,path))
+    retweets = compute_graph(load_data(deadline,path,dtype))
     adj, users = write_hypergraph(retweets, deadline,path=NETPATH)
 
     # Directed graph
