@@ -297,7 +297,7 @@ def test_connected_comp_graph():
     THEN: the function should return a graph with expected values for the columns.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/connected.csv.gz"
+    name=path+"/connected/connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df).astype(int)
     expected_source=[0,0,0,0,0,1,1,2,2,3,3,3]
@@ -318,7 +318,7 @@ def test_connected_adj_matr_diag():
     THEN: The diagonal elements of the adjacency matrix should be zero.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/connected.csv.gz"
+    name=path+"/connected/connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -334,7 +334,7 @@ def test_con_adj():
     THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/connected.csv.gz"
+    name=path+"/connected/connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -351,10 +351,10 @@ def test_load_graph_connected():
     THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix and usermap.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/connected.csv.gz"
+    name=path+"/connected/connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
-    savenames=[pathlib.Path("connected_head.npz"),pathlib.Path("connected_tail.npz"),pathlib.Path("connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("connected/connected_head.npz"),pathlib.Path("connected/connected_tail.npz"),pathlib.Path("connected/connected_usermap.csv.gz")]
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
     tail, head, usermap = load_graph(deadline,path,savenames)
     adj_trasp=tail @ (head.transpose())
@@ -371,7 +371,7 @@ def test_partition_louvain_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("connected_head.npz"),pathlib.Path("connected_tail.npz"),pathlib.Path("connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("connected/connected_head.npz"),pathlib.Path("connected/connected_tail.npz"),pathlib.Path("connected/connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
     for i in results:
@@ -386,7 +386,7 @@ def test_partition_leiden_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("connected_head.npz"),pathlib.Path("connected_tail.npz"),pathlib.Path("connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("connected/connected_head.npz"),pathlib.Path("connected/connected_tail.npz"),pathlib.Path("connected/connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in results:
@@ -405,7 +405,7 @@ def test_comp_connected_comp_graph():
     THEN: the function should return a graph with expected values for the columns.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/comp_connected.csv.gz"
+    name=path+"/compleately_connected/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df).astype(int)
     expected_source=[0,0,0,1,1,1,2,2,2,3,3,3]
@@ -425,7 +425,7 @@ def test_comp_connected_adj_matr_diag():
     THEN: The diagonal elements of the adjacency matrix should be zero.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/comp_connected.csv.gz"
+    name=path+"/compleately_connected/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -441,7 +441,7 @@ def test_comp_con_adj():
     THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/comp_connected.csv.gz"
+    name=path+"/compleately_connected/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -458,11 +458,11 @@ def test_load_graph_comp_connected():
     THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/comp_connected.csv.gz"
+    name=path+"/compleately_connected/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    savenames=[pathlib.Path("comp_connected_head.npz"),pathlib.Path("comp_connected_tail.npz"),pathlib.Path("comp_connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),pathlib.Path("compleately_connected/comp_connected_tail.npz"),pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     users=[int(i) for i in users]
     usermap=[int(i) for i in usermap]
@@ -480,7 +480,7 @@ def test_symmetry_comp_con():
     THEN: The matrix should be equal to the transposed matrix.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/comp_connected.csv.gz"
+    name=path+"/compleately_connected/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -498,7 +498,7 @@ def test_comp_con_is_completely_connected():
     THEN: The matrix should has exactly n(n-1) links (because each node links as a source and as a target with all the users).
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/comp_connected.csv.gz"
+    name=path+"/compleately_connected/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -514,7 +514,7 @@ def test_partition_louvain_comp_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("comp_connected_head.npz"),pathlib.Path("comp_connected_tail.npz"),pathlib.Path("comp_connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),pathlib.Path("compleately_connected/comp_connected_tail.npz"),pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
     for i in results:
@@ -530,7 +530,7 @@ def test_partition_leiden_comp_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("comp_connected_head.npz"),pathlib.Path("comp_connected_tail.npz"),pathlib.Path("comp_connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),pathlib.Path("compleately_connected/comp_connected_tail.npz"),pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in results:
@@ -549,7 +549,7 @@ def test_comp_connected_undir_comp_graph():
     THEN: the function should return a graph with expected values for the columns.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/undir_comp_con.csv.gz"
+    name=path+"/undirected_compleately_connected/undir_comp_con.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     retweets=retweets.astype(int)
@@ -570,7 +570,7 @@ def test_undir_comp_con_adj_matr_diag():
     THEN: The diagonal elements of the adjacency matrix should be zero.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/undir_comp_con.csv.gz"
+    name=path+"/undirected_compleately_connected/undir_comp_con.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -586,7 +586,7 @@ def test_undir_comp_con_adj():
     THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/undir_comp_con.csv.gz"
+    name=path+"/undirected_compleately_connected/undir_comp_con.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -603,11 +603,11 @@ def test_load_graph_undir_comp_con():
     THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/undir_comp_con.csv.gz"
+    name=path+"/undirected_compleately_connected/undir_comp_con.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    savenames=[pathlib.Path("undir_comp_con_head.npz"),pathlib.Path("undir_comp_con_tail.npz"),pathlib.Path("undir_comp_con_usermap.csv.gz")]
+    savenames=[pathlib.Path("undirected_compleately_connected/undir_comp_con_head.npz"),pathlib.Path("undirected_compleately_connected/undir_comp_con_tail.npz"),pathlib.Path("undirected_compleately_connected/undir_comp_con_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     users=[int(i) for i in users]
     usermap=[int(i) for i in usermap]
@@ -625,7 +625,7 @@ def test_upp_triang_undir_comp_con():
     THEN: The matrix + its transpose should be equal to the transposed sum matrix.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/comp_connected.csv.gz"
+    name=path+"/compleately_connected/comp_connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -644,7 +644,7 @@ def test_undir_comp_con_is_completely_connected():
     THEN: The matrix should have exactly n(n-1)/2 links (because each node links as a source and target with all the users).
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/undir_comp_con.csv.gz"
+    name=path+"/undirected_compleately_connected/undir_comp_con.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -660,7 +660,7 @@ def test_partition_undir_leiden_comp_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("undir_comp_con_head.npz"),pathlib.Path("undir_comp_con_tail.npz"),pathlib.Path("undir_comp_con_usermap.csv.gz")]
+    savenames=[pathlib.Path("undirected_compleately_connected/undir_comp_con_head.npz"),pathlib.Path("undirected_compleately_connected/undir_comp_con_tail.npz"),pathlib.Path("undirected_compleately_connected/undir_comp_con_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in results:
@@ -679,7 +679,7 @@ def test_two_islands_comp_graph():
     THEN: the function should return a graph with expected values for the columns.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/two_islands.csv.gz"
+    name=path+"/two_islands/two_islands.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df).astype(int)
     expected_source=[3,2,2,1,4,5,5,6,3,6]
@@ -700,7 +700,7 @@ def test_two_islands_adj_matr_conn_comp_diag():
     THEN: The diagonal elements of the adjacency matrix should be zero.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/two_islands.csv.gz"
+    name=path+"/two_islands/two_islands.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -716,7 +716,7 @@ def test_two_islands_adj_matr_diag():
     THEN: The diagonal elements of the adjacency matrix should be zero.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/two_islands.csv.gz"
+    name=path+"/two_islands/two_islands.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False,exctract_largest_comp=False)
@@ -732,7 +732,7 @@ def test_two_islands_adj_conn_comp():
     THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/two_islands.csv.gz"
+    name=path+"/two_islands/two_islands.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
@@ -750,7 +750,7 @@ def test_two_islands_adj_matr_separation():
     """
     isl_1_dim=4
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/two_islands.csv.gz"
+    name=path+"/two_islands/two_islands.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,exctract_largest_comp=False,write=False)
@@ -774,7 +774,7 @@ def test_two_islands_adj():
     THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/two_islands.csv.gz"
+    name=path+"/two_islands/two_islands.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False,exctract_largest_comp=False)
@@ -791,11 +791,11 @@ def test_load_graph_two_islands():
     THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix.
     """
     path,deadline,dtype=generating_metadata_example()
-    name=path+"/two_islands.csv.gz"
+    name=path+"/two_islands/two_islands.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    savenames=[pathlib.Path("two_islands_head.npz"),pathlib.Path("two_islands_tail.npz"),pathlib.Path("two_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("two_islands/two_islands_head.npz"),pathlib.Path("two_islands/two_islands_tail.npz"),pathlib.Path("two_islands/two_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     users=[int(i) for i in users]
     usermap=[int(i) for i in usermap]
@@ -813,7 +813,7 @@ def test_partition_leiden_two_islands_exctracted():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("two_islands_head.npz"),pathlib.Path("two_islands_tail.npz"),pathlib.Path("two_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("two_islands/two_islands_head.npz"),pathlib.Path("two_islands/two_islands_tail.npz"),pathlib.Path("two_islands/two_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames,)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in results:
@@ -829,7 +829,7 @@ def test_partition_louvain_two_islands_unexctracted():
     """
     isl_1_dim=4
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("comp_two_islands_head.npz"),pathlib.Path("comp_two_islands_tail.npz"),pathlib.Path("comp_two_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("two_islands/comp_two_islands_head.npz"),pathlib.Path("two_islands/comp_two_islands_tail.npz"),pathlib.Path("two_islands/comp_two_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
     for i in range(len(results)):
@@ -846,7 +846,7 @@ def test_partition_leiden_two_islands_unexctracted():
     """
     isl_1_dim=4
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("comp_two_islands_head.npz"),pathlib.Path("comp_two_islands_tail.npz"),pathlib.Path("comp_two_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("two_islands/comp_two_islands_head.npz"),pathlib.Path("two_islands/comp_two_islands_tail.npz"),pathlib.Path("two_islands/comp_two_islands_usermap.csv.gz")]
 
     tail, head, usermap = load_graph(deadline,path,savenames,)
     results=partition_core(tail,head,usermap,kind="leiden")
