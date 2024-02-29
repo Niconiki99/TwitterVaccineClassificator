@@ -354,7 +354,9 @@ def test_load_graph_connected():
     name=path+"/connected/connected.csv.gz"
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
-    savenames=[pathlib.Path("connected/connected_head.npz"),pathlib.Path("connected/connected_tail.npz"),pathlib.Path("connected/connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("connected/connected_head.npz"),
+               pathlib.Path("connected/connected_tail.npz"),
+               pathlib.Path("connected/connected_usermap.csv.gz")]
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
     tail, head, usermap = load_graph(deadline,path,savenames)
     adj_trasp=tail @ (head.transpose())
@@ -371,7 +373,9 @@ def test_partition_louvain_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("connected/connected_head.npz"),pathlib.Path("connected/connected_tail.npz"),pathlib.Path("connected/connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("connected/connected_head.npz"),
+               pathlib.Path("connected/connected_tail.npz"),
+               pathlib.Path("connected/connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
     for i in results:
@@ -386,7 +390,9 @@ def test_partition_leiden_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("connected/connected_head.npz"),pathlib.Path("connected/connected_tail.npz"),pathlib.Path("connected/connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("connected/connected_head.npz"),
+               pathlib.Path("connected/connected_tail.npz"),
+               pathlib.Path("connected/connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in results:
@@ -462,7 +468,9 @@ def test_load_graph_comp_connected():
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),pathlib.Path("compleately_connected/comp_connected_tail.npz"),pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),
+               pathlib.Path("compleately_connected/comp_connected_tail.npz"),
+               pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     users=[int(i) for i in users]
     usermap=[int(i) for i in usermap]
@@ -514,7 +522,9 @@ def test_partition_louvain_comp_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),pathlib.Path("compleately_connected/comp_connected_tail.npz"),pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),
+               pathlib.Path("compleately_connected/comp_connected_tail.npz"),
+               pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
     for i in results:
@@ -530,7 +540,9 @@ def test_partition_leiden_comp_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),pathlib.Path("compleately_connected/comp_connected_tail.npz"),pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
+    savenames=[pathlib.Path("compleately_connected/comp_connected_head.npz"),
+               pathlib.Path("compleately_connected/comp_connected_tail.npz"),
+               pathlib.Path("compleately_connected/comp_connected_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in results:
@@ -607,7 +619,9 @@ def test_load_graph_undir_comp_con():
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    savenames=[pathlib.Path("undirected_compleately_connected/undir_comp_con_head.npz"),pathlib.Path("undirected_compleately_connected/undir_comp_con_tail.npz"),pathlib.Path("undirected_compleately_connected/undir_comp_con_usermap.csv.gz")]
+    savenames=[pathlib.Path("undirected_compleately_connected/undir_comp_con_head.npz"),
+               pathlib.Path("undirected_compleately_connected/undir_comp_con_tail.npz"),
+               pathlib.Path("undirected_compleately_connected/undir_comp_con_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     users=[int(i) for i in users]
     usermap=[int(i) for i in usermap]
@@ -660,7 +674,9 @@ def test_partition_undir_leiden_comp_connected():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("undirected_compleately_connected/undir_comp_con_head.npz"),pathlib.Path("undirected_compleately_connected/undir_comp_con_tail.npz"),pathlib.Path("undirected_compleately_connected/undir_comp_con_usermap.csv.gz")]
+    savenames=[pathlib.Path("undirected_compleately_connected/undir_comp_con_head.npz"),
+               pathlib.Path("undirected_compleately_connected/undir_comp_con_tail.npz"),
+               pathlib.Path("undirected_compleately_connected/undir_comp_con_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in results:
@@ -813,7 +829,9 @@ def test_partition_leiden_two_islands_exctracted():
     THEN: The resulting partitions should be formed by only one community.
     """
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("two_islands/two_islands_head.npz"),pathlib.Path("two_islands/two_islands_tail.npz"),pathlib.Path("two_islands/two_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("two_islands/two_islands_head.npz"),
+               pathlib.Path("two_islands/two_islands_tail.npz"),
+               pathlib.Path("two_islands/two_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames,)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in results:
@@ -829,7 +847,9 @@ def test_partition_louvain_two_islands_unexctracted():
     """
     isl_1_dim=4
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("two_islands/comp_two_islands_head.npz"),pathlib.Path("two_islands/comp_two_islands_tail.npz"),pathlib.Path("two_islands/comp_two_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("two_islands/comp_two_islands_head.npz"),
+               pathlib.Path("two_islands/comp_two_islands_tail.npz"),
+               pathlib.Path("two_islands/comp_two_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
     for i in range(len(results)):
@@ -846,7 +866,9 @@ def test_partition_leiden_two_islands_unexctracted():
     """
     isl_1_dim=4
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("two_islands/comp_two_islands_head.npz"),pathlib.Path("two_islands/comp_two_islands_tail.npz"),pathlib.Path("two_islands/comp_two_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("two_islands/comp_two_islands_head.npz"),
+               pathlib.Path("two_islands/comp_two_islands_tail.npz"),
+               pathlib.Path("two_islands/comp_two_islands_usermap.csv.gz")]
 
     tail, head, usermap = load_graph(deadline,path,savenames,)
     results=partition_core(tail,head,usermap,kind="leiden")
@@ -923,7 +945,9 @@ def test_load_graph_three_islands_connected():
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    savenames=[pathlib.Path("three_islands_connected/three_islands_head.npz"),pathlib.Path("three_islands_connected/three_islands_tail.npz"),pathlib.Path("three_islands_connected/three_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("three_islands_connected/three_islands_head.npz"),
+               pathlib.Path("three_islands_connected/three_islands_tail.npz"),
+               pathlib.Path("three_islands_connected/three_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     users=[int(i) for i in users]
     usermap=[int(i) for i in usermap]
@@ -943,7 +967,9 @@ def test_partition_louvain_three_islands_connected():
     isl_1_dim=3
     isl_2_dim=3
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("three_islands_connected/comp_three_islands_head.npz"),pathlib.Path("three_islands_connected/comp_three_islands_tail.npz"),pathlib.Path("three_islands_connected/comp_three_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("three_islands_connected/comp_three_islands_head.npz"),
+               pathlib.Path("three_islands_connected/comp_three_islands_tail.npz"),
+               pathlib.Path("three_islands_connected/comp_three_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
     for i in range(len(results)):
@@ -961,7 +987,9 @@ def test_partition_louvain_three_islands_connected_():
     isl_1_dim=3
     isl_2_dim=3
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("three_islands_connected/comp_three_islands_head.npz"),pathlib.Path("three_islands_connected/comp_three_islands_tail.npz"),pathlib.Path("three_islands_connected/comp_three_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("three_islands_connected/comp_three_islands_head.npz"),
+               pathlib.Path("three_islands_connected/comp_three_islands_tail.npz"),
+               pathlib.Path("three_islands_connected/comp_three_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in range(len(results)):
@@ -1095,7 +1123,9 @@ def test_load_graph_three_islands():
     df=load_data(deadline,name,dtype)
     retweets=compute_graph(df)
     adj,users=write_hypergraph(retweets,deadline,path,write=False)
-    savenames=[pathlib.Path("three_islands/three_islands_head.npz"),pathlib.Path("three_islands/three_islands_tail.npz"),pathlib.Path("three_islands/three_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("three_islands/three_islands_head.npz"),
+               pathlib.Path("three_islands/three_islands_tail.npz"),
+               pathlib.Path("three_islands/three_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     users=[int(i) for i in users]
     usermap=[int(i) for i in usermap]
@@ -1133,7 +1163,9 @@ def test_partition_louvain_compleat_three_islands():
     isl_1_dim=3
     isl_2_dim=3
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("three_islands/comp_three_islands_head.npz"),pathlib.Path("three_islands/comp_three_islands_tail.npz"),pathlib.Path("three_islands/comp_three_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("three_islands/comp_three_islands_head.npz"),
+               pathlib.Path("three_islands/comp_three_islands_tail.npz"),
+               pathlib.Path("three_islands/comp_three_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in range(len(results)):
@@ -1150,7 +1182,9 @@ def test_partition_louvain_three_islands():
     isl_1_dim=3
     isl_2_dim=3
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("three_islands/three_islands_head.npz"),pathlib.Path("three_islands/three_islands_tail.npz"),pathlib.Path("three_islands/three_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("three_islands/three_islands_head.npz"),
+               pathlib.Path("three_islands/three_islands_tail.npz"),
+               pathlib.Path("three_islands/three_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap)
     for i in range(len(results)):
@@ -1168,7 +1202,9 @@ def test_partition_louvain_three_islands():
     isl_1_dim=3
     isl_2_dim=3
     path,deadline,dtype=generating_metadata_example()
-    savenames=[pathlib.Path("three_islands/three_islands_head.npz"),pathlib.Path("three_islands/three_islands_tail.npz"),pathlib.Path("three_islands/three_islands_usermap.csv.gz")]
+    savenames=[pathlib.Path("three_islands/three_islands_head.npz"),
+               pathlib.Path("three_islands/three_islands_tail.npz"),
+               pathlib.Path("three_islands/three_islands_usermap.csv.gz")]
     tail, head, usermap = load_graph(deadline,path,savenames)
     results=partition_core(tail,head,usermap,kind="leiden")
     for i in range(len(results)):
