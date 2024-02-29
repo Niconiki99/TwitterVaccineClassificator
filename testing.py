@@ -853,3 +853,112 @@ def test_partition_leiden_two_islands_unexctracted():
     for i in range(len(results)):
         assert (results[i]==0 if i<isl_1_dim else results[i]==1)
 
+def test_three_islands_comp_graph():
+    """
+    Test function for computing a graph in a three islands toy model.
+
+    GIVEN: A DataFrame loaded from a CSV file using load_data(), coming from a known configuration.
+    WHEN: computing a graph using compute_graph() function.
+    THEN: the function should return a graph with expected values for the columns.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/three_islands_connected/three_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df).astype(int)
+    expected_source=[0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,0,3]
+    expected_hyperlink=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+    expected_target=[1,2,0,2,0,1,4,5,3,5,3,4,7,8,6,8,6,7,3,6]
+    for i in range(len(retweets)):
+        assert (retweets["source"][i]==expected_source[i])
+        assert (retweets["hyperlink"][i]==expected_hyperlink[i])
+        assert (retweets["target"][i]==expected_target[i])
+
+def test_three_islands_adj_matr_diag():
+    """
+    Test function for verifying diagonal elements of the adjacency matrix for three islands of nodes.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the adjacency matrix.
+    THEN: The diagonal elements of the adjacency matrix should be zero.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/three_islands_connected/three_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False,exctract_largest_comp=False)
+    for i in range(len(users)):
+        assert (adj.toarray()[i,i]==0)
+
+def test_three_islands_adj():
+    """
+    Test function for verifying adjacency matrix consistency with source counts.
+
+    GIVEN: A simple dataframe.
+    WHEN: Computing the graph and writing hypergraph using compute_graph() and write_hypergraph() functions.
+    THEN: The sum of row elements in the adjacency matrix should be equal to the number of retweets from each source.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/three_islands_connected/three_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False,exctract_largest_comp=False)
+    expected_counts=[len(retweets[retweets["source"]==str(i)]) for i in users]
+    for i in range(len(users)):    
+        assert (np.sum(adj.toarray()[i])==expected_counts[i])
+
+def test_load_graph_three_islands():
+    """
+    Test function for loading a three islands graph.
+
+    GIVEN: The computed adjacency matrix.
+    WHEN: Loading the connected graph data using load_graph() function.
+    THEN: The loaded graph data (tail, head, usermap) should match the computed adjacency matrix.
+    """
+    path,deadline,dtype=generating_metadata_example()
+    name=path+"/three_islands_connected/three_islands.csv.gz"
+    df=load_data(deadline,name,dtype)
+    retweets=compute_graph(df)
+    adj,users=write_hypergraph(retweets,deadline,path,write=False)
+    savenames=[pathlib.Path("three_islands_connected/three_islands_head.npz"),pathlib.Path("three_islands_connected/three_islands_tail.npz"),pathlib.Path("three_islands_connected/three_islands_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames)
+    users=[int(i) for i in users]
+    usermap=[int(i) for i in usermap]
+    adj_test=(tail @ (head.transpose())).data
+    adj_res=adj.data
+    for i in range(len(adj_test)): 
+        assert (adj_test[i]==adj_res[i])
+
+def test_partition_louvain_three_islands():
+    """
+    Test function for partitioning a three island graph with Louvain algorithm.
+
+    GIVEN: A graph formed by three islands of nodes.
+    WHEN: Partitioning the whole graph using partition_core() function with Louvain algorithm.
+    THEN: The resulting partitions should be formed by three communities.
+    """
+    isl_1_dim=3
+    isl_2_dim=3
+    path,deadline,dtype=generating_metadata_example()
+    savenames=[pathlib.Path("three_islands_connected/comp_three_islands_head.npz"),pathlib.Path("three_islands_connected/comp_three_islands_tail.npz"),pathlib.Path("three_islands_connected/comp_three_islands_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames)
+    results=partition_core(tail,head,usermap)
+    for i in range(len(results)):
+        assert (results[i]==0 if i<isl_1_dim else results[i]==1 if i<isl_1_dim+isl_2_dim else results[i]==2)
+
+
+def test_partition_louvain_three_islands():
+    """
+    Test function for partitioning a three island graph with Louvain algorithm.
+
+    GIVEN: A graph formed by three islands of nodes.
+    WHEN: Partitioning the whole graph using partition_core() function with Louvain algorithm.
+    THEN: The resulting partitions should be formed by three communities.
+    """
+    isl_1_dim=3
+    isl_2_dim=3
+    path,deadline,dtype=generating_metadata_example()
+    savenames=[pathlib.Path("three_islands_connected/comp_three_islands_head.npz"),pathlib.Path("three_islands_connected/comp_three_islands_tail.npz"),pathlib.Path("three_islands_connected/comp_three_islands_usermap.csv.gz")]
+    tail, head, usermap = load_graph(deadline,path,savenames)
+    results=partition_core(tail,head,usermap,kind="leiden")
+    for i in range(len(results)):
+        assert (results[i]==0 if i<isl_1_dim else results[i]==1 if i<isl_1_dim+isl_2_dim else results[i]==2)
