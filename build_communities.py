@@ -23,6 +23,8 @@ from scipy import sparse
 from configobj import ConfigObj
 from build_graphs import  load_graph , parse_date
 import sys
+import os
+from typing import Union
 
 def partition_core(
     tail: sparse.spmatrix, head: sparse.spmatrix, usermap: pd.Series, kind="sk_louvain"
@@ -98,7 +100,7 @@ def partition_core(
     return core_partition
 
 
-def partition(adj: sparse.spmatrix, kind: str = "louvain", usermap: pd.Series | None = None) -> pd.Series:
+def partition(adj: sparse.spmatrix, kind: str = "louvain", usermap: Union[pd.Series,None] = None) -> pd.Series:
     """
     Compute partitions with various methods. In particular using Louvain and Leiden methods:
     If 'usermap' is provided, it maps the indices to user IDs in the output Series.
@@ -147,7 +149,7 @@ def partition(adj: sparse.spmatrix, kind: str = "louvain", usermap: pd.Series | 
 
 
 
-def plot_comm_size(parts: pd.DataFrame, path:pathlib.Path| str) -> None:
+def plot_comm_size(parts: pd.DataFrame, path: Union[pathlib.Path,str]) -> None:
     """
     Plot the community sizes.
 
@@ -176,7 +178,10 @@ def plot_comm_size(parts: pd.DataFrame, path:pathlib.Path| str) -> None:
         ax.set_xlim(1, 20)
         ax.axhline(0.9)
     axs[0].set_ylabel("Cumulative ratio.")
-    plt.savefig(path/"plot_community_sizes.pdf")
+    try:
+        plt.savefig(path/"plot_community_sizes.pdf")
+    except TypeError:
+        plt.savefig(path+"/plot_community_sizes.pdf")
     plt.close()
 
 

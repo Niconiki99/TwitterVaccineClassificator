@@ -13,12 +13,14 @@ import numpy as np
 import json
 import time
 import matplotlib.pyplot as plt
-import re,os
+import re
 import pandas as pd
 import matplotlib.pyplot as plt
 from fa2 import ForceAtlas2
 from configobj import ConfigObj
 import sys
+import os
+from typing import Union
 
 def load_com(path_com: str, names_com: list, dtype_com: dict) -> tuple[pd.Series, pd.Series]:
     """
@@ -200,7 +202,7 @@ def main() -> None:
     G=nx.read_graphml(NETWORK_DATA+"/retweet_graph_undirected_2021-06-01.graphml")
     leiden,louvain=load_com(path_com,names_com,dtype_com)
     if MAKE:
-        positions=position_creation(G,path_to_read= DATA_DIR + 'position.json')
+        positions=position_creation(G,path_to_save= DATA_DIR + 'position.json')
     else:
         positions=pos_reading(DATA_DIR + 'position.json')
     drawing(drawing_params(positions,G,com2col,leiden),path_to_draw=DATA_DIR+ "network_map.pdf")

@@ -22,7 +22,7 @@ from sklearn.metrics import (
     confusion_matrix,
     matthews_corrcoef,
 )
-import re,os
+import re
 import sys
 import pandas as pd
 from tqdm.auto import tqdm
@@ -36,7 +36,7 @@ from multimodal_transformers.model import AutoModelWithTabular
 from multimodal_transformers.model import TabularConfig
 from multimodal_transformers.data import load_data_from_folder, load_data
 from sklearn.metrics import  accuracy_score, precision_score, recall_score, confusion_matrix
-
+import os
 from configobj import ConfigObj
 
 

@@ -18,8 +18,10 @@ import json
 from sklearn.model_selection import train_test_split
 from configobj import ConfigObj
 import sys
+from typing import Union
+import os
 
-def undersampling(df: pd.DataFrame, random_state : int =None) -> pd.DataFrame:
+def undersampling(df: pd.DataFrame, random_state : Union[int,None] =None) -> pd.DataFrame:
     """
     Perform undersampling on a DataFrame to balance label classes.
 

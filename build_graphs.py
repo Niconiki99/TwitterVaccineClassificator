@@ -26,9 +26,10 @@ import pandas as pd
 from scipy import sparse
 from configobj import ConfigObj
 import sys
+from typing import Union
+import os
 
-
-def load_data(deadline: pd.Timestamp,path: pathlib.Path| str, dtype: dict) -> pd.DataFrame:
+def load_data(deadline: pd.Timestamp,path: Union[pathlib.Path,str], dtype: dict) -> pd.DataFrame:
     """
     Load the full dataset and filter rows based on a given deadline.
 
@@ -91,7 +92,7 @@ def compute_graph(df_full: pd.DataFrame) -> pd.DataFrame:
     return retweets
 
 
-def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib.Path| str = None,savenames:list=[False],write:bool=True,exctract_largest_comp:bool =True) -> tuple:
+def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path: Union[pathlib.Path,str,None] = None,savenames:list=[False],write:bool=True,exctract_largest_comp:bool =True) -> tuple:
     """
     Write down the hypergraph.
 
@@ -157,7 +158,7 @@ def write_hypergraph(retweets: pd.DataFrame, deadline: pd.Timestamp,path:pathlib
     return tail @ head.T, users
 
 
-def load_graph(deadline: pd.Timestamp,path: pathlib.Path| str,savenames:list=[False]) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
+def load_graph(deadline: pd.Timestamp,path: Union[pathlib.Path,str],savenames:list=[False]) -> tuple[sparse.csr_matrix, sparse.csr_matrix, pd.Series]:
     """
     Load head, tail, and usermap matrices representing a hypergraph.
 
@@ -260,7 +261,7 @@ def extract_largest_component(tail: sparse.csr_matrix, head: sparse.csc_matrix) 
     return tail, head, largest_component
 
 
-def parse_date(date: str | pd.Timestamp) -> pd.Timestamp:
+def parse_date(date:Union[str, pd.Timestamp]) -> pd.Timestamp:
     """
     Toggle format from string to pandas Timestamp.
 
