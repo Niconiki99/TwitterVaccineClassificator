@@ -976,7 +976,7 @@ def test_partition_louvain_three_islands_connected():
         assert (results[i]==0 if i<isl_1_dim else results[i]==1 if i<isl_1_dim+isl_2_dim else results[i]==2)
 
 
-def test_partition_louvain_three_islands_connected_():
+def test_partition_louvain_three_islands_connected():
     """
     Test function for partitioning a three island graph with Louvain algorithm.
 
@@ -1152,9 +1152,9 @@ def test_partition_louvain_compleat_three_islands():
         assert (results[i]==0 if i<isl_1_dim else results[i]==1 if i<isl_1_dim+isl_2_dim else results[i]==2)
 
 
-def test_partition_louvain_compleat_three_islands():
+def test_partition_leiden_compleat_three_islands():
     """
-    Test function for partitioning a three island graph with Louvain algorithm.
+    Test function for partitioning a three island graph with Leiden algorithm.
 
     GIVEN: A graph formed by three islands of nodes.
     WHEN: Partitioning the whole graph using partition_core() function with Leiden algorithm.
@@ -1191,9 +1191,9 @@ def test_partition_louvain_three_islands():
         assert (results[i]==0)
 
 
-def test_partition_louvain_three_islands():
+def test_partition_leiden_three_islands():
     """
-    Test function for partitioning a three island graph with Louvain algorithm.
+    Test function for partitioning a three island graph with Leiden algorithm.
 
     GIVEN: A graph formed by three islands of nodes.
     WHEN: Partitioning the connected component of graph using partition_core() function with Leiden algorithm.
